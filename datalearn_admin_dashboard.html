@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>DataLearn — Admin Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=Literata:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --navy: #0b1724;
+    --navy-mid: #132033;
+    --navy-light: #1c2f47;
+    --teal: #00c9a7;
+    --teal-dim: #00a589;
+    --amber: #f5a623;
+    --rose: #f05c6e;
+    --sky: #4db8ff;
+    --text: #e8edf3;
+    --muted: #7a93ad;
+    --border: rgba(255,255,255,0.07);
+    --card: rgba(19,32,51,0.85);
+    --glass: rgba(255,255,255,0.04);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Literata', Georgia, serif; background: var(--navy); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+  body::before { content: ''; position: fixed; inset: 0; background-image: linear-gradient(rgba(0,201,167,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,201,167,0.03) 1px, transparent 1px); background-size: 48px 48px; pointer-events: none; z-index: 0; }
+  body::after { content: ''; position: fixed; top: -200px; right: -200px; width: 600px; height: 600px; background: radial-gradient(circle, rgba(0,201,167,0.08) 0%, transparent 70%); pointer-events: none; z-index: 0; }
+  .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 240px; background: var(--navy-mid); border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 100; }
+  .sidebar-logo { padding: 28px 24px 20px; border-bottom: 1px solid var(--border); }
+  .sidebar-logo .wordmark { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.4rem; color: var(--teal); letter-spacing: -0.02em; line-height: 1; }
+  .sidebar-logo .sub { font-family: 'DM Mono', monospace; font-size: 0.65rem; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; margin-top: 4px; }
+  .sidebar-nav { flex: 1; padding: 16px 0; overflow-y: auto; }
+  .nav-section-label { font-family: 'DM Mono', monospace; font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); padding: 12px 24px 6px; }
+  .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 24px; cursor: pointer; transition: all 0.2s; font-family: 'Syne', sans-serif; font-size: 0.85rem; font-weight: 600; color: var(--muted); border-left: 3px solid transparent; }
+  .nav-item:hover { color: var(--text); background: var(--glass); }
+  .nav-item.active { color: var(--teal); border-left-color: var(--teal); background: rgba(0,201,167,0.06); }
+  .nav-item .icon { font-size: 1rem; width: 20px; text-align: center; }
+  .nav-badge { margin-left: auto; background: var(--teal); color: var(--navy); font-family: 'DM Mono', monospace; font-size: 0.6rem; font-weight: 500; padding: 2px 7px; border-radius: 10px; }
+  .sidebar-footer { padding: 16px 24px; border-top: 1px solid var(--border); }
+  .admin-pill { display: flex; align-items: center; gap: 10px; }
+  .admin-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--teal), var(--sky)); display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.8rem; color: var(--navy); flex-shrink: 0; }
+  .admin-info .name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.8rem; color: var(--text); }
+  .admin-info .role { font-family: 'DM Mono', monospace; font-size: 0.6rem; color: var(--teal); letter-spacing: 0.08em; }
+  .main { margin-left: 240px; min-height: 100vh; padding: 32px 36px; position: relative; z-index: 1; }
+  .topbar { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 32px; }
+  .topbar-left .page-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.8rem; color: var(--text); letter-spacing: -0.03em; line-height: 1; }
+  .topbar-left .page-sub { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--muted); margin-top: 6px; letter-spacing: 0.06em; }
+  .topbar-right { display: flex; align-items: center; gap: 12px; }
+  .btn { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.78rem; padding: 9px 18px; border-radius: 8px; border: none; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; letter-spacing: 0.02em; }
+  .btn-primary { background: var(--teal); color: var(--navy); }
+  .btn-primary:hover { background: var(--teal-dim); transform: translateY(-1px); }
+  .btn-ghost { background: var(--glass); color: var(--muted); border: 1px solid var(--border); }
+  .btn-ghost:hover { color: var(--text); background: rgba(255,255,255,0.07); }
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+  .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px 22px; position: relative; overflow: hidden; backdrop-filter: blur(12px); transition: transform 0.2s, box-shadow 0.2s; }
+  .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+  .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+  .stat-card.teal::before { background: var(--teal); }
+  .stat-card.amber::before { background: var(--amber); }
+  .stat-card.rose::before { background: var(--rose); }
+  .stat-card.sky::before { background: var(--sky); }
+  .stat-label { font-family: 'DM Mono', monospace; font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+  .stat-value { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 2rem; line-height: 1; letter-spacing: -0.03em; }
+  .stat-card.teal .stat-value { color: var(--teal); }
+  .stat-card.amber .stat-value { color: var(--amber); }
+  .stat-card.rose .stat-value { color: var(--rose); }
+  .stat-card.sky .stat-value { color: var(--sky); }
+  .stat-delta { font-family: 'DM Mono', monospace; font-size: 0.65rem; color: var(--muted); margin-top: 6px; }
+  .stat-delta .up { color: var(--teal); }
+  .content-grid { display: grid; grid-template-columns: 1fr 340px; gap: 20px; margin-bottom: 24px; }
+  .panel { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; backdrop-filter: blur(12px); animation: fadeUp 0.5s ease both; animation-delay: 0.25s; }
+  .panel-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 22px; border-bottom: 1px solid var(--border); }
+  .panel-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.9rem; color: var(--text); display: flex; align-items: center; gap: 8px; }
+  .panel-title .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--teal); box-shadow: 0 0 6px var(--teal); }
+  .batch-filter { display: flex; gap: 8px; padding: 14px 22px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+  .filter-chip { font-family: 'DM Mono', monospace; font-size: 0.65rem; letter-spacing: 0.08em; padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; transition: all 0.2s; }
+  .filter-chip:hover, .filter-chip.active { background: rgba(0,201,167,0.12); border-color: var(--teal); color: var(--teal); }
+  .data-table { width: 100%; border-collapse: collapse; }
+  .data-table th { font-family: 'DM Mono', monospace; font-size: 0.6rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); padding: 10px 22px; text-align: left; background: rgba(0,0,0,0.15); border-bottom: 1px solid var(--border); }
+  .data-table td { padding: 12px 22px; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 0.84rem; vertical-align: middle; }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr:hover td { background: rgba(255,255,255,0.02); }
+  .student-name { font-family: 'Syne', sans-serif; font-weight: 600; font-size: 0.85rem; color: var(--text); }
+  .student-email { font-family: 'DM Mono', monospace; font-size: 0.62rem; color: var(--muted); margin-top: 2px; }
+  .progress-bar-wrap { display: flex; align-items: center; gap: 10px; }
+  .progress-bar { flex: 1; height: 5px; background: rgba(255,255,255,0.08); border-radius: 4px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--teal), var(--sky)); transition: width 0.6s ease; }
+  .progress-pct { font-family: 'DM Mono', monospace; font-size: 0.65rem; color: var(--muted); width: 32px; text-align: right; }
+  .grade-badge { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.78rem; padding: 4px 10px; border-radius: 6px; display: inline-block; }
+  .grade-passed { background: rgba(0,201,167,0.15); color: var(--teal); }
+  .grade-failed { background: rgba(240,92,110,0.15); color: var(--rose); }
+  .grade-incomplete { background: rgba(245,166,35,0.15); color: var(--amber); }
+  .score-num { font-family: 'DM Mono', monospace; font-size: 0.82rem; font-weight: 500; }
+  .action-btn { background: var(--glass); border: 1px solid var(--border); color: var(--muted); padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 0.7rem; font-family: 'DM Mono', monospace; transition: all 0.2s; }
+  .action-btn:hover { color: var(--text); border-color: var(--teal); }
+  .right-col { display: flex; flex-direction: column; gap: 20px; }
+  .batch-list { padding: 10px 0; }
+  .batch-item { padding: 14px 22px; border-bottom: 1px solid rgba(255,255,255,0.04); cursor: pointer; transition: background 0.15s; }
+  .batch-item:last-child { border-bottom: none; }
+  .batch-item:hover { background: var(--glass); }
+  .batch-item.active-batch { background: rgba(0,201,167,0.06); }
+  .batch-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.82rem; color: var(--text); }
+  .batch-meta { font-family: 'DM Mono', monospace; font-size: 0.6rem; color: var(--muted); margin-top: 3px; display: flex; gap: 10px; }
+  .batch-progress { margin-top: 8px; display: flex; align-items: center; gap: 8px; }
+  .batch-bar { flex: 1; height: 3px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden; }
+  .batch-fill { height: 100%; border-radius: 2px; }
+  .batch-fill.green { background: var(--teal); }
+  .batch-fill.amber { background: var(--amber); }
+  .batch-fill.sky { background: var(--sky); }
+  .batch-count { font-family: 'DM Mono', monospace; font-size: 0.6rem; color: var(--muted); }
+  .activity-feed { padding: 8px 0; }
+  .activity-item { display: flex; gap: 12px; padding: 10px 22px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .activity-item:last-child { border-bottom: none; }
+  .activity-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+  .activity-text { font-size: 0.78rem; color: var(--muted); line-height: 1.4; }
+  .activity-text strong { color: var(--text); font-family: 'Syne', sans-serif; font-weight: 600; }
+  .activity-text .time { font-family: 'DM Mono', monospace; font-size: 0.6rem; color: var(--muted); margin-top: 2px; display: block; }
+  .bottom-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .grade-dist { padding: 16px 22px 20px; }
+  .dist-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .dist-label { font-family: 'DM Mono', monospace; font-size: 0.65rem; color: var(--muted); width: 70px; flex-shrink: 0; }
+  .dist-bar-wrap { flex: 1; height: 8px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden; }
+  .dist-bar { height: 100%; border-radius: 4px; }
+  .dist-count { font-family: 'DM Mono', monospace; font-size: 0.62rem; color: var(--muted); width: 28px; text-align: right; }
+  .export-section { padding: 18px 22px; }
+  .export-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: var(--glass); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; transition: all 0.2s; cursor: pointer; }
+  .export-row:hover { background: rgba(255,255,255,0.06); border-color: rgba(0,201,167,0.3); }
+  .export-info .export-name { font-family: 'Syne', sans-serif; font-weight: 600; font-size: 0.8rem; color: var(--text); }
+  .export-info .export-desc { font-family: 'DM Mono', monospace; font-size: 0.58rem; color: var(--muted); margin-top: 1px; }
+  .export-icon { font-size: 1rem; color: var(--teal); }
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(11,23,36,0.85); backdrop-filter: blur(6px); z-index: 200; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--navy-mid); border: 1px solid var(--border); border-radius: 16px; width: 460px; max-width: 95vw; padding: 28px; animation: modalIn 0.25s ease; }
+  @keyframes modalIn { from { opacity: 0; transform: scale(0.95) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+  .modal-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.1rem; color: var(--text); margin-bottom: 6px; }
+  .modal-sub { font-family: 'DM Mono', monospace; font-size: 0.65rem; color: var(--teal); margin-bottom: 22px; letter-spacing: 0.06em; }
+  .form-row { margin-bottom: 14px; }
+  .form-label { font-family: 'DM Mono', monospace; font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 6px; }
+  .form-input, .form-select { width: 100%; background: var(--glass); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; color: var(--text); font-family: 'Literata', Georgia, serif; font-size: 0.85rem; outline: none; transition: border-color 0.2s; }
+  .form-input:focus, .form-select:focus { border-color: var(--teal); }
+  .form-select option { background: var(--navy-mid); }
+  .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 22px; }
+  .toast { position: fixed; bottom: 28px; right: 28px; background: var(--navy-light); border: 1px solid var(--teal); border-radius: 10px; padding: 12px 20px; font-family: 'Syne', sans-serif; font-weight: 600; font-size: 0.8rem; color: var(--teal); z-index: 300; transform: translateY(80px); opacity: 0; transition: all 0.3s ease; display: flex; align-items: center; gap: 8px; }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .search-wrap { position: relative; display: flex; align-items: center; }
+  .search-icon { position: absolute; left: 12px; color: var(--muted); font-size: 0.85rem; pointer-events: none; }
+  .search-input { background: var(--glass); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px 8px 34px; color: var(--text); font-family: 'DM Mono', monospace; font-size: 0.72rem; outline: none; width: 200px; transition: border-color 0.2s, width 0.3s; }
+  .search-input:focus { border-color: var(--teal); width: 240px; }
+  .search-input::placeholder { color: var(--muted); }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  .stat-card { animation: fadeUp 0.5s ease both; }
+  .stat-card:nth-child(1) { animation-delay: 0.05s; }
+  .stat-card:nth-child(2) { animation-delay: 0.1s; }
+  .stat-card:nth-child(3) { animation-delay: 0.15s; }
+  .stat-card:nth-child(4) { animation-delay: 0.2s; }
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--navy-light); border-radius: 4px; }
+  .setup-overlay { display: none; position: fixed; inset: 0; background: rgba(11,23,36,0.97); backdrop-filter: blur(12px); z-index: 500; align-items: center; justify-content: center; }
+  .setup-overlay.open { display: flex; }
+  .setup-card { background: var(--navy-mid); border: 1px solid var(--border); border-radius: 20px; width: 520px; max-width: 95vw; padding: 36px; animation: modalIn 0.3s ease; }
+  .setup-logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.6rem; color: var(--teal); margin-bottom: 4px; }
+  .setup-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.1rem; color: var(--text); margin: 18px 0 4px; }
+  .setup-desc { font-family: 'Literata', Georgia, serif; font-size: 0.85rem; color: var(--muted); line-height: 1.6; margin-bottom: 22px; }
+  .setup-steps { display: flex; gap: 6px; margin-bottom: 24px; }
+  .setup-step-dot { width: 28px; height: 4px; border-radius: 2px; background: var(--border); transition: background 0.3s; }
+  .setup-step-dot.done { background: var(--teal); }
+  .setup-link { display: inline-flex; align-items: center; gap: 6px; font-family: 'DM Mono', monospace; font-size: 0.65rem; color: var(--sky); text-decoration: none; letter-spacing: 0.08em; margin-bottom: 20px; padding: 6px 12px; border: 1px solid rgba(77,184,255,0.25); border-radius: 6px; background: rgba(77,184,255,0.06); }
+  .setup-hint { font-family: 'DM Mono', monospace; font-size: 0.6rem; color: var(--muted); margin-top: 5px; letter-spacing: 0.05em; }
+  .setup-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
+  .test-result { margin-top: 12px; padding: 10px 14px; border-radius: 8px; font-family: 'DM Mono', monospace; font-size: 0.68rem; display: none; }
+  .test-result.ok { background: rgba(0,201,167,0.1); color: var(--teal); border: 1px solid rgba(0,201,167,0.25); }
+  .test-result.err { background: rgba(240,92,110,0.1); color: var(--rose); border: 1px solid rgba(240,92,110,0.25); }
+  .skeleton { background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: 4px; }
+  @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+  .loading-row td { padding: 14px 22px; }
+  .skel-name { height: 12px; width: 140px; display: inline-block; }
+  .skel-sub { height: 9px; width: 110px; display: inline-block; margin-top: 5px; }
+  .skel-bar { height: 5px; width: 100%; display: inline-block; }
+  .skel-num { height: 11px; width: 36px; display: inline-block; }
+  .skel-badge { height: 20px; width: 62px; display: inline-block; border-radius: 6px; }
+  .conn-badge { display: inline-flex; align-items: center; gap: 5px; font-family: 'DM Mono', monospace; font-size: 0.6rem; letter-spacing: 0.08em; padding: 4px 10px; border-radius: 20px; border: 1px solid; }
+  .conn-badge.live { color: var(--teal); border-color: rgba(0,201,167,0.3); background: rgba(0,201,167,0.08); }
+  .conn-badge.demo { color: var(--amber); border-color: rgba(245,166,35,0.3); background: rgba(245,166,35,0.08); }
+  .conn-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .conn-dot.pulse { animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+</style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="wordmark">DataLearn</div>
+    <div class="sub">TESDA · Admin Portal</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Overview</div>
+    <div class="nav-item active" onclick="setNav(this)"><span class="icon">⊞</span> Dashboard</div>
+    <div class="nav-item" onclick="setNav(this)"><span class="icon">◈</span> Batches <span class="nav-badge">3</span></div>
+    <div class="nav-section-label">Students</div>
+    <div class="nav-item" onclick="setNav(this)"><span class="icon">◉</span> All Students</div>
+    <div class="nav-item" onclick="setNav(this)"><span class="icon">◎</span> Progress Tracker</div>
+    <div class="nav-item" onclick="setNav(this)"><span class="icon">◇</span> Grade Management</div>
+    <div class="nav-section-label">Content</div>
+    <div class="nav-item" onclick="setNav(this)"><span class="icon">▣</span> Courses</div>
+    <div class="nav-item" onclick="setNav(this)"><span class="icon">▤</span> Lessons</div>
+    <div class="nav-item" onclick="setNav(this)"><span class="icon">▦</span> Quizzes</div>
+    <div class="nav-section-label">Reports</div>
+    <div class="nav-item" onclick="setNav(this)"><span class="icon">⊘</span> Analytics</div>
+    <div class="nav-item" onclick="setNav(this)"><span class="icon">⊡</span> Certificates <span class="nav-badge">12</span></div>
+    <div class="nav-item" onclick="setNav(this)"><span class="icon">⊟</span> Export Data</div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="admin-pill">
+      <div class="admin-avatar">JA</div>
+      <div class="admin-info">
+        <div class="name">John Admin</div>
+        <div class="role">TRAINER · TARLAC</div>
+      </div>
+    </div>
+  </div>
+</aside>
+<main class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="page-title">Dashboard</div>
+      <div class="page-sub">TESDA DATA ANALYTICS — TARLAC PROVINCE · AY 2025</div>
+    </div>
+    <div class="topbar-right">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input class="search-input" type="text" placeholder="Search students..." oninput="filterTable(this.value)"/>
+      </div>
+      <span class="conn-badge demo" id="connBadge"><span class="conn-dot"></span>LOADING…</span>
+      <button class="btn btn-ghost" onclick="exportCSV()">⬇ Export CSV</button>
+      <button class="btn btn-ghost" onclick="resetCredentials()" title="Change credentials">⚙</button>
+      <button class="btn btn-primary" onclick="openModal('addStudent')">＋ Add Student</button>
+    </div>
+  </div>
+  <div class="stats-row">
+    <div class="stat-card teal"><div class="stat-label">Total Students</div><div class="stat-value">—</div><div class="stat-delta">Loading…</div></div>
+    <div class="stat-card amber"><div class="stat-label">Avg Final Grade</div><div class="stat-value">—</div><div class="stat-delta">Loading…</div></div>
+    <div class="stat-card sky"><div class="stat-label">Completion Rate</div><div class="stat-value">—</div><div class="stat-delta">Loading…</div></div>
+    <div class="stat-card rose"><div class="stat-label">Certificates Issued</div><div class="stat-value">—</div><div class="stat-delta">Loading…</div></div>
+  </div>
+  <div class="content-grid">
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title"><span class="dot"></span> Student Records</div>
+        <button class="action-btn" onclick="openModal('override')">✏ Override Grade</button>
+      </div>
+      <div class="batch-filter">
+        <button class="filter-chip active" onclick="filterBatch('all',this)">All Batches</button>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="data-table">
+          <thead><tr><th>Student</th><th>Batch</th><th>Progress</th><th>Quiz Avg</th><th>Final Grade</th><th>Status</th><th></th></tr></thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="right-col">
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title"><span class="dot"></span> Batch Overview</div>
+          <button class="btn btn-ghost" style="font-size:0.7rem;padding:6px 12px;" onclick="openModal('addBatch')">＋ New Batch</button>
+        </div>
+        <div class="batch-list" id="batchList"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title"><span class="dot"></span> Recent Activity</div></div>
+        <div class="activity-feed" id="activityFeed"></div>
+      </div>
+    </div>
+  </div>
+  <div class="bottom-row">
+    <div class="panel">
+      <div class="panel-header"><div class="panel-title"><span class="dot"></span> Grade Distribution</div></div>
+      <div class="grade-dist">
+        <div class="dist-row"><div class="dist-label">90–100</div><div class="dist-bar-wrap"><div class="dist-bar" id="dist90" style="background:var(--teal);"></div></div><div class="dist-count" id="cnt90">0</div></div>
+        <div class="dist-row"><div class="dist-label">80–89</div><div class="dist-bar-wrap"><div class="dist-bar" id="dist80" style="background:var(--sky);"></div></div><div class="dist-count" id="cnt80">0</div></div>
+        <div class="dist-row"><div class="dist-label">75–79</div><div class="dist-bar-wrap"><div class="dist-bar" id="dist75" style="background:var(--amber);"></div></div><div class="dist-count" id="cnt75">0</div></div>
+        <div class="dist-row"><div class="dist-label">Below 75</div><div class="dist-bar-wrap"><div class="dist-bar" id="distBelow" style="background:var(--rose);"></div></div><div class="dist-count" id="cntBelow">0</div></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-header"><div class="panel-title"><span class="dot"></span> Export & Reports</div></div>
+      <div class="export-section">
+        <div class="export-row" onclick="exportCSV()"><div class="export-info"><div class="export-name">Grade Sheet (CSV)</div><div class="export-desc">All students · Final grades + quiz avg</div></div><span class="export-icon">⬇</span></div>
+        <div class="export-row" onclick="showToast('📋 Progress report generated!')"><div class="export-info"><div class="export-name">Progress Report</div><div class="export-desc">Lesson completion per student</div></div><span class="export-icon">⬇</span></div>
+        <div class="export-row" onclick="showToast('🎓 Certificate batch export ready!')"><div class="export-info"><div class="export-name">Certificates (PDF)</div><div class="export-desc">All passed students · TESDA template</div></div><span class="export-icon">⬇</span></div>
+        <div class="export-row" onclick="showToast('📊 Analytics report queued!')"><div class="export-info"><div class="export-name">Analytics Summary</div><div class="export-desc">Batch comparison · Trends</div></div><span class="export-icon">⬇</span></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="modal-addStudent">
+  <div class="modal">
+    <div class="modal-title">Add New Student</div>
+    <div class="modal-sub">STUDENT ENROLLMENT · DATALEARN LMS</div>
+    <div class="form-row"><label class="form-label">Full Name</label><input class="form-input" type="text" id="newName" placeholder="e.g. Maria Santos"/></div>
+    <div class="form-row"><label class="form-label">Email Address</label><input class="form-input" type="email" id="newEmail" placeholder="email@tesda.gov.ph"/></div>
+    <div class="form-row-2">
+      <div class="form-row" style="margin-bottom:0;"><label class="form-label">Batch</label><select class="form-select" id="newBatch"></select></div>
+      <div class="form-row" style="margin-bottom:0;"><label class="form-label">Role</label><select class="form-select"><option>Student</option><option>Instructor</option></select></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('addStudent')">Cancel</button>
+      <button class="btn btn-primary" onclick="addStudent()">Enroll Student</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="modal-addBatch">
+  <div class="modal">
+    <div class="modal-title">Create New Batch</div>
+    <div class="modal-sub">BATCH MANAGEMENT · DATALEARN LMS</div>
+    <div class="form-row"><label class="form-label">Batch Name</label><input class="form-input" type="text" id="batchName" placeholder="e.g. Batch 2025-D"/></div>
+    <div class="form-row"><label class="form-label">Description</label><input class="form-input" type="text" id="batchDesc" placeholder="e.g. Tarlac Province Staff — Q3"/></div>
+    <div class="form-row-2">
+      <div class="form-row" style="margin-bottom:0;"><label class="form-label">Start Date</label><input class="form-input" type="date" id="batchStart"/></div>
+      <div class="form-row" style="margin-bottom:0;"><label class="form-label">End Date</label><input class="form-input" type="date" id="batchEnd"/></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('addBatch')">Cancel</button>
+      <button class="btn btn-primary" onclick="addBatch()">Create Batch</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="modal-override">
+  <div class="modal">
+    <div class="modal-title">Override Final Grade</div>
+    <div class="modal-sub">MANUAL GRADE OVERRIDE · ADMIN ONLY</div>
+    <div class="form-row"><label class="form-label">Select Student</label><select class="form-select" id="overrideStudent"></select></div>
+    <div class="form-row-2">
+      <div class="form-row" style="margin-bottom:0;"><label class="form-label">New Final Grade</label><input class="form-input" type="number" min="0" max="100" id="overrideGrade" placeholder="0–100"/></div>
+      <div class="form-row" style="margin-bottom:0;"><label class="form-label">Remarks</label><select class="form-select" id="overrideRemarks"><option>PASSED</option><option>FAILED</option><option>INCOMPLETE</option></select></div>
+    </div>
+    <div class="form-row"><label class="form-label">Override Note</label><input class="form-input" type="text" id="overrideNote" placeholder="Reason for override..."/></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('override')">Cancel</button>
+      <button class="btn btn-primary" onclick="applyOverride()">Apply Override</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast">✓ <span id="toastMsg"></span></div>
+
+<!-- SETUP WIZARD -->
+<div class="setup-overlay" id="setupWizard">
+  <div class="setup-card">
+    <div class="setup-logo">DataLearn</div>
+    <div class="setup-steps">
+      <div class="setup-step-dot done" id="step1dot"></div>
+      <div class="setup-step-dot" id="step2dot"></div>
+      <div class="setup-step-dot" id="step3dot"></div>
+    </div>
+    <div id="wizStep1">
+      <div class="setup-title">Connect to Supabase</div>
+      <div class="setup-desc">Run in <strong style="color:var(--teal)">Demo Mode</strong> (sample data) or connect to your live Supabase database.</div>
+      <a class="setup-link" href="https://supabase.com/dashboard" target="_blank">↗ Open Supabase Dashboard</a>
+      <div class="form-row"><label class="form-label">Supabase Project URL</label><input class="form-input" id="sbUrl" type="text" placeholder="https://xxxxxxxxxxxx.supabase.co"/><div class="setup-hint">Settings → API → Project URL</div></div>
+      <div class="form-row"><label class="form-label">Anon / Public Key</label><input class="form-input" id="sbKey" type="text" placeholder="eyJhbGci..."/><div class="setup-hint">Settings → Legacy anon, service_role API keys → anon public</div></div>
+      <div class="test-result" id="testResult"></div>
+      <div class="setup-actions">
+        <button class="btn btn-ghost" onclick="useDemoMode()">Use Demo Mode</button>
+        <button class="btn btn-ghost" onclick="testConnection()">Test Connection</button>
+        <button class="btn btn-primary" id="connectBtn" onclick="saveCredentials()" disabled>Connect →</button>
+      </div>
+    </div>
+    <div id="wizStep2" style="display:none;">
+      <div class="setup-title">Verifying Tables</div>
+      <div class="setup-desc">Checking that all DataLearn tables exist…</div>
+      <div id="tableCheckList" style="margin-bottom:16px;"></div>
+      <div class="setup-actions">
+        <button class="btn btn-ghost" onclick="goStep(1)">← Back</button>
+        <button class="btn btn-primary" id="proceedBtn" onclick="goStep(3)" disabled>Continue →</button>
+      </div>
+    </div>
+    <div id="wizStep3" style="display:none;">
+      <div class="setup-title" style="color:var(--teal);">✓ All set!</div>
+      <div class="setup-desc">DataLearn is connected to Supabase. Live data will load automatically.</div>
+      <div class="setup-actions"><button class="btn btn-primary" onclick="launchDashboard()">Launch Dashboard →</button></div>
+    </div>
+  </div>
+</div>
+
+<script>
+let SB_URL = localStorage.getItem('dl_sb_url') || '';
+let SB_KEY = localStorage.getItem('dl_sb_key') || '';
+let IS_DEMO = !SB_URL || !SB_KEY;
+let IS_LIVE = false;
+let students = [], batches = [], activities = [], batchSelectOptions = [];
+let currentBatchFilter = 'all', searchQuery = '';
+
+async function sbQuery(table, params='') {
+  const res = await fetch(`${SB_URL}/rest/v1/${table}?${params}`, { headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' } });
+  if (!res.ok) throw new Error(`${res.status}`);
+  return res.json();
+}
+async function sbPost(table, body) {
+  const res = await fetch(`${SB_URL}/rest/v1/${table}`, { method:'POST', headers: { 'apikey':SB_KEY, 'Authorization':`Bearer ${SB_KEY}`, 'Content-Type':'application/json', 'Prefer':'return=representation' }, body: JSON.stringify(body) });
+  if (!res.ok) throw new Error(`${res.status}`);
+  return res.json();
+}
+async function sbPatch(table, filter, body) {
+  const res = await fetch(`${SB_URL}/rest/v1/${table}?${filter}`, { method:'PATCH', headers: { 'apikey':SB_KEY, 'Authorization':`Bearer ${SB_KEY}`, 'Content-Type':'application/json', 'Prefer':'return=representation' }, body: JSON.stringify(body) });
+  if (!res.ok) throw new Error(`${res.status}`);
+  return res.json();
+}
+
+const DEMO_STUDENTS = [
+  {id:'1',name:'Maria Santos',email:'m.santos@tesda.gov.ph',batch:'2025-A',progress:95,quizAvg:88,finalGrade:90,status:'PASSED'},
+  {id:'2',name:'Roberto Cruz',email:'r.cruz@tesda.gov.ph',batch:'2025-A',progress:80,quizAvg:79,finalGrade:82,status:'PASSED'},
+  {id:'3',name:'Liza Reyes',email:'l.reyes@tesda.gov.ph',batch:'2025-A',progress:70,quizAvg:72,finalGrade:74,status:'FAILED'},
+  {id:'4',name:'Carlo Mendoza',email:'c.mendoza@tesda.gov.ph',batch:'2025-B',progress:100,quizAvg:95,finalGrade:96,status:'PASSED'},
+  {id:'5',name:'Ana Villanueva',email:'a.villanueva@tesda.gov.ph',batch:'2025-B',progress:88,quizAvg:84,finalGrade:86,status:'PASSED'},
+  {id:'6',name:'Jose Bautista',email:'j.bautista@tesda.gov.ph',batch:'2025-B',progress:60,quizAvg:68,finalGrade:70,status:'INCOMPLETE'},
+  {id:'7',name:'Diana Flores',email:'d.flores@tesda.gov.ph',batch:'2025-C',progress:92,quizAvg:91,finalGrade:92,status:'PASSED'},
+  {id:'8',name:'Mark Castillo',email:'m.castillo@tesda.gov.ph',batch:'2025-C',progress:75,quizAvg:77,finalGrade:78,status:'PASSED'},
+  {id:'9',name:'Rosa dela Cruz',email:'r.delacruz@tesda.gov.ph',batch:'2025-C',progress:55,quizAvg:65,finalGrade:67,status:'FAILED'},
+];
+const DEMO_BATCHES = [
+  {id:'a',name:'Batch 2025-A',desc:'Q1 · Jan–Feb',total_students:3,passed_count:2},
+  {id:'b',name:'Batch 2025-B',desc:'Q2 · Mar–Apr',total_students:3,passed_count:2},
+  {id:'c',name:'Batch 2025-C',desc:'Q3 · Ongoing',total_students:3,passed_count:2},
+];
+const DEMO_ACTIVITIES = [
+  {text:'<strong>Carlo Mendoza</strong> completed the course',time:'2 mins ago',color:'var(--teal)'},
+  {text:'<strong>Diana Flores</strong> passed Quiz 5',time:'14 mins ago',color:'var(--sky)'},
+  {text:'<strong>Batch 2025-C</strong> was created',time:'1 hour ago',color:'var(--amber)'},
+  {text:'<strong>Liza Reyes</strong> grade was overridden',time:'3 hours ago',color:'var(--rose)'},
+  {text:'<strong>Ana Villanueva</strong> received certificate',time:'Yesterday',color:'var(--teal)'},
+];
+
+function initWizard() {
+  if (SB_URL && SB_KEY) { document.getElementById('sbUrl').value=SB_URL; document.getElementById('sbKey').value=SB_KEY; connectAndLaunch(); }
+  else document.getElementById('setupWizard').classList.add('open');
+}
+function goStep(n) {
+  [1,2,3].forEach(i => { document.getElementById(`wizStep${i}`).style.display=i===n?'':'none'; document.getElementById(`step${i}dot`).classList.toggle('done',i<=n); });
+  if (n===2) runTableCheck();
+}
+async function testConnection() {
+  const url=document.getElementById('sbUrl').value.trim(), key=document.getElementById('sbKey').value.trim();
+  const res=document.getElementById('testResult');
+  res.style.display='block'; res.className='test-result'; res.textContent='⏳ Testing…';
+  try {
+    const r = await fetch(`${url}/rest/v1/batches?limit=1`,{headers:{'apikey':key,'Authorization':`Bearer ${key}`}});
+    if (r.ok||r.status===406) { res.className='test-result ok'; res.textContent='✓ Connection successful!'; document.getElementById('connectBtn').disabled=false; }
+    else throw new Error(`HTTP ${r.status}`);
+  } catch(e) { res.className='test-result err'; res.textContent=`✗ Failed: ${e.message}`; }
+}
+async function saveCredentials() {
+  SB_URL=document.getElementById('sbUrl').value.trim(); SB_KEY=document.getElementById('sbKey').value.trim();
+  localStorage.setItem('dl_sb_url',SB_URL); localStorage.setItem('dl_sb_key',SB_KEY);
+  IS_DEMO=false; goStep(2);
+}
+const REQUIRED_TABLES=['batches','users','courses','lessons','quizzes','grades','student_progress','quiz_attempts','certificates'];
+async function runTableCheck() {
+  const c=document.getElementById('tableCheckList');
+  c.innerHTML=REQUIRED_TABLES.map(t=>`<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);"><span id="tc_${t}" style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--muted);">⏳</span><span style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--text);">${t}</span></div>`).join('');
+  let allOk=true;
+  for (const t of REQUIRED_TABLES) {
+    try {
+      const r=await fetch(`${SB_URL}/rest/v1/${t}?limit=1`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
+      const el=document.getElementById(`tc_${t}`);
+      if (r.ok||r.status===406) { el.textContent='✓'; el.style.color='var(--teal)'; }
+      else { el.textContent='✗'; el.style.color='var(--rose)'; allOk=false; }
+    } catch { document.getElementById(`tc_${t}`).textContent='✗'; allOk=false; }
+  }
+  const btn=document.getElementById('proceedBtn');
+  if (allOk) { btn.disabled=false; btn.textContent='Continue →'; }
+  else btn.textContent='Some tables missing — run schema SQL first';
+}
+function useDemoMode() { IS_DEMO=true; SB_URL=''; SB_KEY=''; localStorage.removeItem('dl_sb_url'); localStorage.removeItem('dl_sb_key'); launchDashboard(); }
+function launchDashboard() { document.getElementById('setupWizard').classList.remove('open'); loadDashboard(); }
+async function connectAndLaunch() {
+  try { const r=await fetch(`${SB_URL}/rest/v1/batches?limit=1`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}}); IS_LIVE=r.ok||r.status===406; } catch { IS_LIVE=false; }
+  if (!IS_LIVE) { IS_DEMO=true; showToast('⚠ Could not reach Supabase — Demo Mode'); }
+  launchDashboard();
+}
+async function loadDashboard() {
+  updateConnBadge(); renderSkeletons();
+  if (IS_DEMO) { students=DEMO_STUDENTS; batches=DEMO_BATCHES; activities=DEMO_ACTIVITIES; batchSelectOptions=DEMO_BATCHES.map(b=>b.name); }
+  else { await Promise.all([loadStudents(),loadBatches()]); activities=DEMO_ACTIVITIES; }
+  updateStats(); renderTable(); renderBatches(); renderBatchFilterChips(); renderActivity(); updateGradeDist();
+}
+async function loadStudents() {
+  try {
+    const rows=await sbQuery('student_detail','select=*&order=full_name.asc');
+    students=rows.map(r=>({id:r.student_id,name:r.full_name,email:r.email,batch:r.batch_name||'—',progress:Math.round((r.lessons_completed/20)*100)||0,quizAvg:parseFloat(r.quiz_average)||0,finalGrade:parseFloat(r.final_grade)||0,status:r.remarks||'INCOMPLETE'}));
+  } catch(e) { console.warn(e); students=DEMO_STUDENTS; }
+}
+async function loadBatches() {
+  try {
+    const rows=await sbQuery('batch_summary','select=*&order=batch_name.asc');
+    batches=rows.map(r=>({id:r.batch_id,name:r.batch_name,desc:r.course,total_students:r.total_students||0,passed_count:r.passed_count||0}));
+    batchSelectOptions=batches.map(b=>b.name);
+  } catch(e) { console.warn(e); batches=DEMO_BATCHES; batchSelectOptions=DEMO_BATCHES.map(b=>b.name); }
+}
+function updateStats() {
+  const total=students.length;
+  const grades=students.map(s=>s.finalGrade).filter(g=>g>0);
+  const avg=grades.length?(grades.reduce((a,b)=>a+b,0)/grades.length).toFixed(1):'—';
+  const completed=students.filter(s=>s.progress>=100).length;
+  const compRate=total?Math.round((completed/total)*100):0;
+  const certs=students.filter(s=>s.status==='PASSED').length;
+  document.querySelectorAll('.stat-value')[0].textContent=total;
+  document.querySelectorAll('.stat-value')[1].textContent=avg;
+  document.querySelectorAll('.stat-value')[2].textContent=compRate+'%';
+  document.querySelectorAll('.stat-value')[3].textContent=certs;
+}
+function updateGradeDist() {
+  const g90=students.filter(s=>s.finalGrade>=90).length;
+  const g80=students.filter(s=>s.finalGrade>=80&&s.finalGrade<90).length;
+  const g75=students.filter(s=>s.finalGrade>=75&&s.finalGrade<80).length;
+  const gBel=students.filter(s=>s.finalGrade>0&&s.finalGrade<75).length;
+  const max=Math.max(g90,g80,g75,gBel,1);
+  document.getElementById('dist90').style.width=(g90/max*100)+'%'; document.getElementById('cnt90').textContent=g90;
+  document.getElementById('dist80').style.width=(g80/max*100)+'%'; document.getElementById('cnt80').textContent=g80;
+  document.getElementById('dist75').style.width=(g75/max*100)+'%'; document.getElementById('cnt75').textContent=g75;
+  document.getElementById('distBelow').style.width=(gBel/max*100)+'%'; document.getElementById('cntBelow').textContent=gBel;
+}
+function renderSkeletons() {
+  document.getElementById('tableBody').innerHTML=Array(5).fill(0).map(()=>`<tr class="loading-row"><td><div class="skeleton skel-name"></div><br/><div class="skeleton skel-sub"></div></td><td><div class="skeleton skel-num"></div></td><td><div class="skeleton skel-bar"></div></td><td><div class="skeleton skel-num"></div></td><td><div class="skeleton skel-num"></div></td><td><div class="skeleton skel-badge"></div></td><td></td></tr>`).join('');
+}
+function renderTable() {
+  const tbody=document.getElementById('tableBody');
+  let f=students.filter(s=>{
+    const b=typeof s.batch==='string'?s.batch:'';
+    return (currentBatchFilter==='all'||b.includes(currentBatchFilter))&&(s.name.toLowerCase().includes(searchQuery)||s.email.toLowerCase().includes(searchQuery));
+  });
+  if (!f.length) { tbody.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:28px;font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--muted);">No students found.</td></tr>`; return; }
+  tbody.innerHTML=f.map(s=>`<tr><td><div class="student-name">${s.name}</div><div class="student-email">${s.email}</div></td><td><span style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--muted);">${s.batch}</span></td><td><div class="progress-bar-wrap"><div class="progress-bar"><div class="progress-fill" style="width:${s.progress}%"></div></div><div class="progress-pct">${s.progress}%</div></div></td><td><span class="score-num">${s.quizAvg||'—'}</span></td><td><span class="score-num" style="font-weight:700;color:var(--text);">${s.finalGrade||'—'}</span></td><td><span class="grade-badge grade-${(s.status||'incomplete').toLowerCase()}">${s.status||'INCOMPLETE'}</span></td><td><button class="action-btn" onclick="quickView('${s.id}')">View</button></td></tr>`).join('');
+}
+function renderBatches() {
+  const colors=['green','amber','sky','teal','rose'];
+  document.getElementById('batchList').innerHTML=batches.map((b,i)=>{
+    const t=b.total_students||0,p=b.passed_count||0,pct=t?Math.round((p/t)*100):0;
+    return `<div class="batch-item ${i===0?'active-batch':''}" onclick="selectBatch(this)"><div class="batch-name">${b.name}</div><div class="batch-meta"><span>${b.desc||''}</span><span>${t} students</span></div><div class="batch-progress"><div class="batch-bar"><div class="batch-fill ${colors[i%colors.length]}" style="width:${pct}%"></div></div><div class="batch-count">${p}/${t} passed</div></div></div>`;
+  }).join('')||'<div style="padding:16px 22px;font-family:\'DM Mono\',monospace;font-size:0.7rem;color:var(--muted);">No batches yet.</div>';
+}
+function renderBatchFilterChips() {
+  const wrap=document.querySelector('.batch-filter');
+  wrap.querySelectorAll('.filter-chip').forEach((c,i)=>{ if(i>0) c.remove(); });
+  batches.forEach(b=>{ const chip=document.createElement('button'); chip.className='filter-chip'; chip.textContent=b.name; const key=b.name.replace('Batch ',''); chip.onclick=()=>filterBatch(key,chip); wrap.appendChild(chip); });
+}
+function renderActivity() {
+  document.getElementById('activityFeed').innerHTML=activities.map(a=>`<div class="activity-item"><div class="activity-dot" style="background:${a.color};box-shadow:0 0 5px ${a.color};"></div><div class="activity-text">${a.text}<span class="time">${a.time}</span></div></div>`).join('');
+}
+function renderOverrideSelect() {
+  document.getElementById('overrideStudent').innerHTML=students.map(s=>`<option value="${s.id}">${s.name} (${s.batch})</option>`).join('');
+}
+function updateConnBadge() {
+  const badge=document.getElementById('connBadge');
+  if (!badge) return;
+  badge.className=IS_DEMO?'conn-badge demo':'conn-badge live';
+  badge.innerHTML=IS_DEMO?'<span class="conn-dot"></span>DEMO MODE':'<span class="conn-dot pulse"></span>LIVE · SUPABASE';
+}
+function setNav(el) { document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active')); el.classList.add('active'); showToast('📂 '+el.textContent.trim()); }
+function filterBatch(k,el) { currentBatchFilter=k; document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active')); if(el) el.classList.add('active'); renderTable(); }
+function filterTable(v) { searchQuery=v.toLowerCase(); renderTable(); }
+function selectBatch(el) { document.querySelectorAll('.batch-item').forEach(b=>b.classList.remove('active-batch')); el.classList.add('active-batch'); }
+function quickView(id) { const s=students.find(x=>String(x.id)===String(id)); if(s) showToast(`👁 ${s.name} — Grade: ${s.finalGrade} (${s.status})`); }
+function openModal(id) { if(id==='override') renderOverrideSelect(); if(id==='addStudent') populateBatchSelect(); document.getElementById('modal-'+id).classList.add('open'); }
+function closeModal(id) { document.getElementById('modal-'+id).classList.remove('open'); }
+function populateBatchSelect() { const sel=document.getElementById('newBatch'); const opts=batchSelectOptions.length?batchSelectOptions:['Batch 2025-A','Batch 2025-B','Batch 2025-C']; sel.innerHTML=opts.map(b=>`<option>${b}</option>`).join(''); }
+document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{ if(e.target===o) o.classList.remove('open'); }));
+async function addStudent() {
+  const name=document.getElementById('newName').value.trim(), email=document.getElementById('newEmail').value.trim(), batchName=document.getElementById('newBatch').value;
+  if(!name||!email) { showToast('⚠ Please fill in all fields.'); return; }
+  if(!IS_DEMO) {
+    try { const batch=batches.find(b=>b.name===batchName); const [c]=await sbPost('users',{full_name:name,email,role:'student',batch_id:batch?batch.id:null}); students.push({id:c.id,name,email,batch:batchName,progress:0,quizAvg:0,finalGrade:0,status:'INCOMPLETE'}); }
+    catch(e) { showToast(`✗ Error: ${e.message}`); return; }
+  } else { students.push({id:Date.now().toString(),name,email,batch:batchName.replace('Batch ',''),progress:0,quizAvg:0,finalGrade:0,status:'INCOMPLETE'}); }
+  activities.unshift({text:`<strong>${name}</strong> was enrolled`,time:'Just now',color:'var(--teal)'});
+  updateStats(); renderTable(); renderActivity(); closeModal('addStudent');
+  document.getElementById('newName').value=''; document.getElementById('newEmail').value='';
+  showToast(`✓ ${name} enrolled!`);
+}
+async function addBatch() {
+  const name=document.getElementById('batchName').value.trim(), desc=document.getElementById('batchDesc').value.trim(), start=document.getElementById('batchStart').value, end=document.getElementById('batchEnd').value;
+  if(!name) { showToast('⚠ Please enter a batch name.'); return; }
+  const nb={id:Date.now().toString(),name,desc:desc||'New batch',total_students:0,passed_count:0};
+  if(!IS_DEMO) { try { const [c]=await sbPost('batches',{name,description:desc,course:'Data Analytics NC II',start_date:start||null,end_date:end||null}); nb.id=c.id; } catch(e) { showToast(`✗ Error: ${e.message}`); return; } }
+  batches.push(nb); batchSelectOptions.push(name); renderBatches(); renderBatchFilterChips(); closeModal('addBatch');
+  document.getElementById('batchName').value=''; document.getElementById('batchDesc').value='';
+  showToast(`✓ ${name} created!`);
+}
+async function applyOverride() {
+  const sid=document.getElementById('overrideStudent').value, grade=parseFloat(document.getElementById('overrideGrade').value), remarks=document.getElementById('overrideRemarks').value, note=document.getElementById('overrideNote').value.trim();
+  if(isNaN(grade)||grade<0||grade>100) { showToast('⚠ Enter a valid grade (0–100).'); return; }
+  const s=students.find(x=>String(x.id)===String(sid)); if(!s) return;
+  if(!IS_DEMO) { try { await sbPatch('grades',`student_id=eq.${sid}`,{final_grade:grade,remarks,is_manually_overridden:true,override_note:note,updated_at:new Date().toISOString()}); } catch(e) { showToast(`✗ Error: ${e.message}`); return; } }
+  s.finalGrade=grade; s.status=remarks;
+  activities.unshift({text:`<strong>${s.name}</strong> grade overridden to ${grade}`,time:'Just now',color:'var(--rose)'});
+  updateStats(); renderTable(); renderActivity(); updateGradeDist(); closeModal('override');
+  showToast(`✓ Grade overridden: ${s.name} → ${grade} (${remarks})`);
+}
+function exportCSV() {
+  const header=['Name','Email','Batch','Progress %','Quiz Avg','Final Grade','Status'];
+  const rows=students.map(s=>[`"${s.name}"`,`"${s.email}"`,`"${s.batch}"`,s.progress,s.quizAvg,s.finalGrade,s.status]);
+  const csv=[header,...rows].map(r=>r.join(',')).join('\n');
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download=`datalearn_grades_${new Date().toISOString().slice(0,10)}.csv`; a.click();
+  showToast('📥 Grade sheet exported!');
+}
+function resetCredentials() { localStorage.removeItem('dl_sb_url'); localStorage.removeItem('dl_sb_key'); location.reload(); }
+let toastTimer;
+function showToast(msg) { const t=document.getElementById('toast'); document.getElementById('toastMsg').textContent=msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),3000); }
+initWizard();
+</script>
+</body>
+</html>
