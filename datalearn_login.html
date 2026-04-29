@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>DataLearn — Student Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=Literata:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --navy: #0b1724;
+    --navy-mid: #132033;
+    --navy-light: #1c2f47;
+    --teal: #00c9a7;
+    --teal-dim: #00a589;
+    --amber: #f5a623;
+    --rose: #f05c6e;
+    --sky: #4db8ff;
+    --text: #e8edf3;
+    --muted: #7a93ad;
+    --border: rgba(255,255,255,0.07);
+    --card: rgba(19,32,51,0.92);
+    --glass: rgba(255,255,255,0.04);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Literata', Georgia, serif;
+    background: var(--navy);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Animated background */
+  .bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+  }
+
+  .bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,201,167,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,201,167,0.04) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+
+  .orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    animation: drift 12s ease-in-out infinite alternate;
+  }
+
+  .orb-1 { width: 500px; height: 500px; background: rgba(0,201,167,0.08); top: -150px; right: -100px; animation-delay: 0s; }
+  .orb-2 { width: 400px; height: 400px; background: rgba(77,184,255,0.06); bottom: -100px; left: -80px; animation-delay: -4s; }
+  .orb-3 { width: 300px; height: 300px; background: rgba(245,166,35,0.05); top: 40%; left: 30%; animation-delay: -8s; }
+
+  @keyframes drift {
+    from { transform: translate(0, 0) scale(1); }
+    to   { transform: translate(30px, -20px) scale(1.05); }
+  }
+
+  /* SPLIT LAYOUT */
+  .container {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 900px;
+    max-width: 98vw;
+    min-height: 580px;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.5), 0 0 0 1px var(--border);
+    animation: cardIn 0.6s cubic-bezier(0.22,1,0.36,1) both;
+  }
+
+  @keyframes cardIn {
+    from { opacity: 0; transform: translateY(32px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  /* LEFT PANEL — branding */
+  .left-panel {
+    background: linear-gradient(145deg, #0d2035 0%, #091620 100%);
+    padding: 52px 44px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+    border-right: 1px solid var(--border);
+  }
+
+  .left-panel::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(0,201,167,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .left-panel::after {
+    content: '';
+    position: absolute;
+    bottom: -40px; left: -40px;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(77,184,255,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .brand { position: relative; z-index: 1; }
+
+  .brand-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 2rem;
+    color: var(--teal);
+    letter-spacing: -0.04em;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .brand-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--muted);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .brand-desc {
+    position: relative;
+    z-index: 1;
+  }
+
+  .brand-desc h2 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1.3rem;
+    color: var(--text);
+    line-height: 1.35;
+    margin-bottom: 16px;
+    letter-spacing: -0.02em;
+  }
+
+  .brand-desc p {
+    font-size: 0.85rem;
+    color: var(--muted);
+    line-height: 1.65;
+  }
+
+  .features {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .feature-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+  }
+
+  .feature-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--teal);
+    box-shadow: 0 0 6px var(--teal);
+    flex-shrink: 0;
+  }
+
+  /* RIGHT PANEL — form */
+  .right-panel {
+    background: var(--card);
+    backdrop-filter: blur(20px);
+    padding: 52px 44px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 32px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 10px;
+    padding: 4px;
+  }
+
+  .tab {
+    flex: 1;
+    padding: 9px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.78rem;
+    letter-spacing: 0.04em;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    border-radius: 7px;
+    cursor: pointer;
+    transition: all 0.25s;
+  }
+
+  .tab.active {
+    background: var(--teal);
+    color: var(--navy);
+    box-shadow: 0 2px 12px rgba(0,201,167,0.3);
+  }
+
+  /* FORM */
+  .form-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.4rem;
+    color: var(--text);
+    letter-spacing: -0.03em;
+    margin-bottom: 4px;
+  }
+
+  .form-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    margin-bottom: 24px;
+  }
+
+  .form-group {
+    margin-bottom: 14px;
+  }
+
+  .form-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .form-input {
+    width: 100%;
+    background: rgba(0,0,0,0.2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 11px 14px;
+    color: var(--text);
+    font-family: 'Literata', Georgia, serif;
+    font-size: 0.88rem;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .form-input:focus {
+    border-color: var(--teal);
+    box-shadow: 0 0 0 3px rgba(0,201,167,0.1);
+  }
+
+  .form-input::placeholder { color: rgba(122,147,173,0.5); }
+
+  .form-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .btn-submit {
+    width: 100%;
+    padding: 13px;
+    background: var(--teal);
+    color: var(--navy);
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 0.88rem;
+    letter-spacing: 0.04em;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .btn-submit:hover { background: var(--teal-dim); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,201,167,0.3); }
+  .btn-submit:active { transform: translateY(0); }
+  .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 16px 0;
+  }
+
+  .divider-line { flex: 1; height: 1px; background: var(--border); }
+
+  .divider-text {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+  }
+
+  /* Forgot password link */
+  .forgot-link {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--sky);
+    cursor: pointer;
+    text-align: right;
+    margin-top: -8px;
+    margin-bottom: 14px;
+    display: block;
+    letter-spacing: 0.04em;
+    transition: color 0.2s;
+  }
+  .forgot-link:hover { color: var(--teal); }
+
+  /* Alert messages */
+  .alert {
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    margin-bottom: 14px;
+    display: none;
+    line-height: 1.5;
+  }
+  .alert.show { display: block; }
+  .alert.success { background: rgba(0,201,167,0.1); color: var(--teal); border: 1px solid rgba(0,201,167,0.25); }
+  .alert.error   { background: rgba(240,92,110,0.1); color: var(--rose); border: 1px solid rgba(240,92,110,0.25); }
+  .alert.info    { background: rgba(77,184,255,0.1); color: var(--sky);  border: 1px solid rgba(77,184,255,0.25); }
+
+  /* Spinner */
+  .spinner {
+    width: 16px; height: 16px;
+    border: 2px solid rgba(11,23,36,0.3);
+    border-top-color: var(--navy);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: none;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Password strength */
+  .pw-strength { margin-top: 6px; }
+  .pw-bar { height: 3px; border-radius: 2px; background: var(--border); overflow: hidden; }
+  .pw-fill { height: 100%; border-radius: 2px; width: 0%; transition: width 0.3s, background 0.3s; }
+  .pw-label { font-family: 'DM Mono', monospace; font-size: 0.58rem; color: var(--muted); margin-top: 3px; }
+
+  /* Terms */
+  .terms {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--muted);
+    margin-top: 12px;
+    text-align: center;
+    line-height: 1.6;
+  }
+  .terms a { color: var(--sky); cursor: pointer; }
+
+  /* Setup overlay */
+  .setup-overlay { display: none; position: fixed; inset: 0; background: rgba(11,23,36,0.97); backdrop-filter: blur(12px); z-index: 500; align-items: center; justify-content: center; }
+  .setup-overlay.open { display: flex; }
+  .setup-card { background: var(--navy-mid); border: 1px solid var(--border); border-radius: 20px; width: 480px; max-width: 95vw; padding: 36px; }
+  .setup-logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.6rem; color: var(--teal); margin-bottom: 16px; }
+  .setup-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem; color: var(--text); margin-bottom: 6px; }
+  .setup-desc { font-family: 'Literata', serif; font-size: 0.83rem; color: var(--muted); line-height: 1.6; margin-bottom: 20px; }
+  .setup-hint { font-family: 'DM Mono', monospace; font-size: 0.58rem; color: var(--muted); margin-top: 4px; }
+  .form-label-s { font-family: 'DM Mono', monospace; font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 6px; }
+  .form-input-s { width: 100%; background: var(--glass); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; color: var(--text); font-family: 'Literata', serif; font-size: 0.85rem; outline: none; transition: border-color 0.2s; margin-bottom: 14px; }
+  .form-input-s:focus { border-color: var(--teal); }
+  .setup-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+  .btn-s { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.78rem; padding: 9px 18px; border-radius: 8px; border: none; cursor: pointer; transition: all 0.2s; }
+  .btn-primary-s { background: var(--teal); color: var(--navy); }
+  .btn-ghost-s { background: var(--glass); color: var(--muted); border: 1px solid var(--border); }
+  .test-result-s { padding: 10px 14px; border-radius: 8px; font-family: 'DM Mono', monospace; font-size: 0.65rem; display: none; margin-top: 8px; }
+  .test-result-s.ok  { background: rgba(0,201,167,0.1); color: var(--teal); border: 1px solid rgba(0,201,167,0.25); }
+  .test-result-s.err { background: rgba(240,92,110,0.1); color: var(--rose); border: 1px solid rgba(240,92,110,0.25); }
+
+  /* Responsive */
+  @media (max-width: 680px) {
+    .container { grid-template-columns: 1fr; }
+    .left-panel { display: none; }
+    .right-panel { padding: 36px 28px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+
+<!-- MAIN CONTAINER -->
+<div class="container">
+
+  <!-- LEFT PANEL -->
+  <div class="left-panel">
+    <div class="brand">
+      <div class="brand-logo">DataLearn</div>
+      <div class="brand-sub">TESDA · Student Portal</div>
+    </div>
+    <div class="brand-desc">
+      <h2>Your Data Analytics Journey Starts Here</h2>
+      <p>Access your lessons, track your progress, and earn your TESDA certificate — all in one place.</p>
+    </div>
+    <div class="features">
+      <div class="feature-item"><span class="feature-dot"></span> 20-day structured curriculum</div>
+      <div class="feature-item"><span class="feature-dot"></span> Excel, SQL & Power BI modules</div>
+      <div class="feature-item"><span class="feature-dot"></span> Quizzes with instant feedback</div>
+      <div class="feature-item"><span class="feature-dot"></span> Progress tracking & grades</div>
+      <div class="feature-item"><span class="feature-dot"></span> TESDA certificate on completion</div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="right-panel">
+
+    <!-- TABS -->
+    <div class="tabs">
+      <button class="tab active" id="tabLogin" onclick="switchTab('login')">Sign In</button>
+      <button class="tab" id="tabRegister" onclick="switchTab('register')">Register</button>
+    </div>
+
+    <!-- LOGIN FORM -->
+    <div id="formLogin">
+      <div class="form-title">Welcome back</div>
+      <div class="form-sub">SIGN IN TO YOUR STUDENT ACCOUNT</div>
+      <div class="alert" id="loginAlert"></div>
+      <div class="form-group">
+        <label class="form-label">Email Address</label>
+        <input class="form-input" type="email" id="loginEmail" placeholder="you@email.com" autocomplete="email"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password"/>
+      </div>
+      <span class="forgot-link" onclick="handleForgot()">Forgot password?</span>
+      <button class="btn-submit" id="loginBtn" onclick="handleLogin()">
+        <span class="spinner" id="loginSpinner"></span>
+        <span id="loginBtnText">Sign In →</span>
+      </button>
+      <div class="divider"><div class="divider-line"></div><div class="divider-text">OR</div><div class="divider-line"></div></div>
+      <div class="terms">Don't have an account? <a onclick="switchTab('register')">Register here</a></div>
+    </div>
+
+    <!-- REGISTER FORM -->
+    <div id="formRegister" style="display:none;">
+      <div class="form-title">Create account</div>
+      <div class="form-sub">STUDENT SELF-REGISTRATION</div>
+      <div class="alert" id="registerAlert"></div>
+      <div class="form-row-2">
+        <div class="form-group">
+          <label class="form-label">First Name</label>
+          <input class="form-input" type="text" id="regFirstName" placeholder="Maria"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Last Name</label>
+          <input class="form-input" type="text" id="regLastName" placeholder="Santos"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email Address</label>
+        <input class="form-input" type="email" id="regEmail" placeholder="you@email.com" autocomplete="email"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" type="password" id="regPassword" placeholder="Min. 8 characters" oninput="checkStrength(this.value)" autocomplete="new-password"/>
+        <div class="pw-strength">
+          <div class="pw-bar"><div class="pw-fill" id="pwFill"></div></div>
+          <div class="pw-label" id="pwLabel">Enter a password</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Confirm Password</label>
+        <input class="form-input" type="password" id="regConfirm" placeholder="••••••••" autocomplete="new-password"/>
+      </div>
+      <button class="btn-submit" id="registerBtn" onclick="handleRegister()">
+        <span class="spinner" id="registerSpinner"></span>
+        <span id="registerBtnText">Create Account →</span>
+      </button>
+      <div class="terms">By registering, you agree to TESDA's data privacy policies.<br/>Already have an account? <a onclick="switchTab('login')">Sign in</a></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── CONFIG ─────────────────────────────────────────────────
+let SB_URL = localStorage.getItem('dl_sb_url') || '';
+let SB_KEY = localStorage.getItem('dl_sb_key') || '';
+let IS_DEMO = !SB_URL || !SB_KEY;
+
+// ── SUPABASE AUTH HELPERS ──────────────────────────────────
+async function sbSignUp(email, password, meta) {
+  const res = await fetch(`${SB_URL}/auth/v1/signup`, {
+    method: 'POST',
+    headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password, data: meta })
+  });
+  return res.json();
+}
+
+async function sbSignIn(email, password) {
+  const res = await fetch(`${SB_URL}/auth/v1/token?grant_type=password`, {
+    method: 'POST',
+    headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password })
+  });
+  return res.json();
+}
+
+async function sbResetPassword(email) {
+  const res = await fetch(`${SB_URL}/auth/v1/recover`, {
+    method: 'POST',
+    headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email })
+  });
+  return res.json();
+}
+
+async function sbInsertUser(userData) {
+  const res = await fetch(`${SB_URL}/rest/v1/users`, {
+    method: 'POST',
+    headers: {
+      'apikey': SB_KEY,
+      'Authorization': `Bearer ${SB_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation'
+    },
+    body: JSON.stringify(userData)
+  });
+  return res.json();
+}
+
+// ── SETUP WIZARD ───────────────────────────────────────────
+function initApp() {
+  if (SB_URL && SB_KEY) {
+    IS_DEMO = false;
+    // Already logged in? Skip to learning page
+    const session = localStorage.getItem('dl_session');
+    if (session) { redirectToLearning(); return; }
+    // Credentials found — go straight to login form, no wizard
+  } else {
+    // No credentials — run in demo mode automatically, no wizard
+    IS_DEMO = true;
+    showAlert('loginAlert', 'info', '📋 Running in Demo Mode. Connect Supabase via the Admin Dashboard first.');
+  }
+}
+
+async function testConn() {
+  const url = document.getElementById('sbUrl').value.trim();
+  const key = document.getElementById('sbKey').value.trim();
+  const res = document.getElementById('testResult');
+  res.style.display = 'block'; res.className = 'test-result-s'; res.textContent = '⏳ Testing…';
+  try {
+    const r = await fetch(`${url}/rest/v1/batches?limit=1`, { headers: { 'apikey': key, 'Authorization': `Bearer ${key}` } });
+    if (r.ok || r.status === 406) {
+      res.className = 'test-result-s ok'; res.textContent = '✓ Connection successful!';
+      document.getElementById('connectBtn').disabled = false;
+    } else throw new Error(`HTTP ${r.status}`);
+  } catch(e) { res.className = 'test-result-s err'; res.textContent = `✗ Failed: ${e.message}`; }
+}
+
+function saveAndConnect() {
+  SB_URL = document.getElementById('sbUrl').value.trim();
+  SB_KEY = document.getElementById('sbKey').value.trim();
+  localStorage.setItem('dl_sb_url', SB_URL);
+  localStorage.setItem('dl_sb_key', SB_KEY);
+  IS_DEMO = false;
+  document.getElementById('setupOverlay').classList.remove('open');
+}
+
+function useDemoMode() {
+  IS_DEMO = true;
+  document.getElementById('setupOverlay').classList.remove('open');
+  showAlert('loginAlert', 'info', '📋 Demo Mode — login with any email/password to continue.');
+}
+
+// ── TAB SWITCHING ──────────────────────────────────────────
+function switchTab(tab) {
+  document.getElementById('tabLogin').classList.toggle('active', tab === 'login');
+  document.getElementById('tabRegister').classList.toggle('active', tab === 'register');
+  document.getElementById('formLogin').style.display = tab === 'login' ? '' : 'none';
+  document.getElementById('formRegister').style.display = tab === 'register' ? '' : 'none';
+  clearAlerts();
+}
+
+function clearAlerts() {
+  ['loginAlert','registerAlert'].forEach(id => {
+    const el = document.getElementById(id);
+    el.className = 'alert'; el.textContent = '';
+  });
+}
+
+function showAlert(id, type, msg) {
+  const el = document.getElementById(id);
+  el.className = `alert ${type} show`;
+  el.textContent = msg;
+}
+
+// ── PASSWORD STRENGTH ──────────────────────────────────────
+function checkStrength(pw) {
+  const fill = document.getElementById('pwFill');
+  const label = document.getElementById('pwLabel');
+  let score = 0;
+  if (pw.length >= 8) score++;
+  if (/[A-Z]/.test(pw)) score++;
+  if (/[0-9]/.test(pw)) score++;
+  if (/[^A-Za-z0-9]/.test(pw)) score++;
+  const levels = [
+    { pct:'0%',   color:'transparent', text:'Enter a password' },
+    { pct:'25%',  color:'var(--rose)',  text:'Weak' },
+    { pct:'50%',  color:'var(--amber)', text:'Fair' },
+    { pct:'75%',  color:'var(--sky)',   text:'Good' },
+    { pct:'100%', color:'var(--teal)',  text:'Strong ✓' },
+  ];
+  const l = levels[score];
+  fill.style.width = l.pct; fill.style.background = l.color; label.textContent = l.text;
+}
+
+// ── LOADING STATE ──────────────────────────────────────────
+function setLoading(btn, spinner, text, loading, label) {
+  document.getElementById(btn).disabled = loading;
+  document.getElementById(spinner).style.display = loading ? 'block' : 'none';
+  document.getElementById(text).textContent = loading ? 'Please wait…' : label;
+}
+
+// ── LOGIN ──────────────────────────────────────────────────
+async function handleLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  clearAlerts();
+
+  if (!email || !password) { showAlert('loginAlert', 'error', '⚠ Please enter your email and password.'); return; }
+
+  setLoading('loginBtn', 'loginSpinner', 'loginBtnText', true, 'Sign In →');
+
+  if (IS_DEMO) {
+    await delay(1000);
+    // Demo mode — simulate login
+    localStorage.setItem('dl_session', JSON.stringify({ user: { email, user_metadata: { full_name: email.split('@')[0] } } }));
+    showAlert('loginAlert', 'success', '✓ Signed in! Redirecting to learning page…');
+    setTimeout(redirectToLearning, 1200);
+    setLoading('loginBtn', 'loginSpinner', 'loginBtnText', false, 'Sign In →');
+    return;
+  }
+
+  try {
+    const data = await sbSignIn(email, password);
+    if (data.error) throw new Error(data.error_description || data.error);
+    // Save session
+    localStorage.setItem('dl_session', JSON.stringify(data));
+    localStorage.setItem('dl_access_token', data.access_token);
+    showAlert('loginAlert', 'success', '✓ Signed in! Redirecting…');
+    setTimeout(redirectToLearning, 1000);
+  } catch(e) {
+    showAlert('loginAlert', 'error', `✗ ${e.message}`);
+  }
+
+  setLoading('loginBtn', 'loginSpinner', 'loginBtnText', false, 'Sign In →');
+}
+
+// ── REGISTER ───────────────────────────────────────────────
+async function handleRegister() {
+  const firstName = document.getElementById('regFirstName').value.trim();
+  const lastName  = document.getElementById('regLastName').value.trim();
+  const email     = document.getElementById('regEmail').value.trim();
+  const password  = document.getElementById('regPassword').value;
+  const confirm   = document.getElementById('regConfirm').value;
+  clearAlerts();
+
+  if (!firstName || !lastName || !email || !password) { showAlert('registerAlert', 'error', '⚠ Please fill in all fields.'); return; }
+  if (password.length < 8) { showAlert('registerAlert', 'error', '⚠ Password must be at least 8 characters.'); return; }
+  if (password !== confirm) { showAlert('registerAlert', 'error', '⚠ Passwords do not match.'); return; }
+
+  setLoading('registerBtn', 'registerSpinner', 'registerBtnText', true, 'Create Account →');
+
+  if (IS_DEMO) {
+    await delay(1200);
+    showAlert('registerAlert', 'success', '✓ Account created! You can now sign in. (Demo Mode)');
+    setTimeout(() => switchTab('login'), 1500);
+    setLoading('registerBtn', 'registerSpinner', 'registerBtnText', false, 'Create Account →');
+    return;
+  }
+
+  try {
+    const fullName = `${firstName} ${lastName}`;
+    // 1. Sign up with Supabase Auth
+    const authData = await sbSignUp(email, password, { full_name: fullName });
+    if (authData.error) throw new Error(authData.error_description || authData.error);
+
+    // 2. Insert into users table
+    const userId = authData.user?.id;
+    if (userId) {
+      await sbInsertUser({ id: userId, full_name: fullName, email, role: 'student' });
+    }
+
+    showAlert('registerAlert', 'success', '✓ Account created! Please check your email to confirm, then sign in.');
+    setTimeout(() => switchTab('login'), 2500);
+  } catch(e) {
+    showAlert('registerAlert', 'error', `✗ ${e.message}`);
+  }
+
+  setLoading('registerBtn', 'registerSpinner', 'registerBtnText', false, 'Create Account →');
+}
+
+// ── FORGOT PASSWORD ────────────────────────────────────────
+async function handleForgot() {
+  const email = document.getElementById('loginEmail').value.trim();
+  if (!email) { showAlert('loginAlert', 'info', 'ℹ Enter your email above first, then click "Forgot password?"'); return; }
+  if (IS_DEMO) { showAlert('loginAlert', 'info', '📋 Demo Mode — password reset not available.'); return; }
+  try {
+    await sbResetPassword(email);
+    showAlert('loginAlert', 'success', `✓ Password reset email sent to ${email}`);
+  } catch(e) { showAlert('loginAlert', 'error', `✗ ${e.message}`); }
+}
+
+// ── REDIRECT ───────────────────────────────────────────────
+function redirectToLearning() {
+  // Redirect to learning page (same folder)
+  window.location.href = 'datalearn_learning.html';
+}
+
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// Enter key support
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    const activeTab = document.getElementById('tabLogin').classList.contains('active') ? 'login' : 'register';
+    if (activeTab === 'login') handleLogin();
+    else handleRegister();
+  }
+});
+
+// ── BOOT ───────────────────────────────────────────────────
+initApp();
+</script>
+</body>
+</html>
