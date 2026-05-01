@@ -1,0 +1,1432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>DataLearn — Student Learning</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=Literata:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --navy: #0b1724;
+    --navy-mid: #132033;
+    --navy-light: #1c2f47;
+    --teal: #00c9a7;
+    --teal-dim: #00a589;
+    --amber: #f5a623;
+    --rose: #f05c6e;
+    --sky: #4db8ff;
+    --text: #e8edf3;
+    --muted: #7a93ad;
+    --border: rgba(255,255,255,0.07);
+    --card: rgba(19,32,51,0.9);
+    --glass: rgba(255,255,255,0.04);
+    --sidebar-w: 280px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Literata', Georgia, serif;
+    background: var(--navy);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,201,167,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,201,167,0.025) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none; z-index: 0;
+  }
+
+  /* ── TOPBAR ── */
+  .topbar {
+    position: fixed; top: 0; left: 0; right: 0;
+    height: 56px;
+    background: rgba(11,23,36,0.95);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center;
+    padding: 0 24px;
+    z-index: 200;
+    gap: 16px;
+  }
+
+  .topbar-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800; font-size: 1.1rem;
+    color: var(--teal); letter-spacing: -0.03em;
+    margin-right: 8px;
+  }
+
+  .topbar-course {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem; color: var(--muted);
+    letter-spacing: 0.1em; text-transform: uppercase;
+  }
+
+  .topbar-right {
+    margin-left: auto;
+    display: flex; align-items: center; gap: 12px;
+  }
+
+  .progress-pill {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 5px 14px;
+  }
+
+  .progress-pill-bar {
+    width: 80px; height: 4px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 2px; overflow: hidden;
+  }
+
+  .progress-pill-fill {
+    height: 100%; border-radius: 2px;
+    background: linear-gradient(90deg, var(--teal), var(--sky));
+    transition: width 0.6s ease;
+  }
+
+  .progress-pill-text {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem; color: var(--teal);
+    letter-spacing: 0.06em;
+  }
+
+  .user-chip {
+    display: flex; align-items: center; gap: 8px;
+    cursor: pointer;
+  }
+
+  .user-avatar {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--teal), var(--sky));
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif; font-weight: 800;
+    font-size: 0.7rem; color: var(--navy);
+  }
+
+  .user-name {
+    font-family: 'Syne', sans-serif;
+    font-weight: 600; font-size: 0.78rem; color: var(--text);
+  }
+
+  .btn-logout {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem; color: var(--muted);
+    background: none; border: none; cursor: pointer;
+    letter-spacing: 0.08em; padding: 4px 8px;
+    border-radius: 4px; transition: color 0.2s;
+  }
+  .btn-logout:hover { color: var(--rose); }
+
+  /* ── LAYOUT ── */
+  .layout {
+    display: grid;
+    grid-template-columns: var(--sidebar-w) 1fr;
+    margin-top: 56px;
+    min-height: calc(100vh - 56px);
+    position: relative; z-index: 1;
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    position: fixed;
+    top: 56px; left: 0; bottom: 0;
+    width: var(--sidebar-w);
+    background: var(--navy-mid);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    z-index: 100;
+  }
+
+  .sidebar-header {
+    padding: 20px 20px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sidebar-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700; font-size: 0.8rem;
+    color: var(--text); margin-bottom: 4px;
+  }
+
+  .sidebar-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.58rem; color: var(--muted);
+    letter-spacing: 0.1em; text-transform: uppercase;
+  }
+
+  /* Overall progress bar in sidebar */
+  .sidebar-progress {
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sp-row {
+    display: flex; justify-content: space-between;
+    align-items: center; margin-bottom: 6px;
+  }
+
+  .sp-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.58rem; color: var(--muted);
+    letter-spacing: 0.08em; text-transform: uppercase;
+  }
+
+  .sp-pct {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700; font-size: 0.75rem; color: var(--teal);
+  }
+
+  .sp-bar {
+    height: 4px; background: rgba(255,255,255,0.06);
+    border-radius: 2px; overflow: hidden;
+  }
+
+  .sp-fill {
+    height: 100%; border-radius: 2px;
+    background: linear-gradient(90deg, var(--teal), var(--sky));
+    transition: width 0.8s ease;
+  }
+
+  /* Day list */
+  .day-list { padding: 8px 0; }
+
+  .week-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.58rem; letter-spacing: 0.15em;
+    text-transform: uppercase; color: var(--muted);
+    padding: 10px 20px 4px;
+  }
+
+  .day-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 20px;
+    cursor: pointer;
+    transition: background 0.15s;
+    border-left: 3px solid transparent;
+    position: relative;
+  }
+
+  .day-item:hover:not(.locked) { background: var(--glass); }
+
+  .day-item.active {
+    background: rgba(0,201,167,0.07);
+    border-left-color: var(--teal);
+  }
+
+  .day-item.locked { cursor: not-allowed; opacity: 0.45; }
+
+  .day-icon {
+    width: 26px; height: 26px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.65rem; flex-shrink: 0;
+    font-family: 'DM Mono', monospace; font-weight: 500;
+  }
+
+  .day-icon.done { background: var(--teal); color: var(--navy); }
+  .day-icon.active-icon { background: rgba(0,201,167,0.15); color: var(--teal); border: 1px solid var(--teal); }
+  .day-icon.locked-icon { background: rgba(255,255,255,0.05); color: var(--muted); }
+  .day-icon.available-icon { background: rgba(77,184,255,0.12); color: var(--sky); }
+
+  .day-info { flex: 1; min-width: 0; }
+
+  .day-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 600; font-size: 0.75rem;
+    color: var(--text); white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis;
+  }
+
+  .day-item.locked .day-title { color: var(--muted); }
+
+  .day-meta {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.56rem; color: var(--muted);
+    margin-top: 1px; letter-spacing: 0.04em;
+  }
+
+  .day-check {
+    font-size: 0.7rem; color: var(--teal); flex-shrink: 0;
+  }
+
+  /* ── MAIN CONTENT ── */
+  .main {
+    margin-left: var(--sidebar-w);
+    padding: 32px 40px;
+    max-width: 860px;
+  }
+
+  /* Lesson header */
+  .lesson-header { margin-bottom: 28px; }
+
+  .lesson-day-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem; letter-spacing: 0.15em;
+    text-transform: uppercase; color: var(--teal);
+    background: rgba(0,201,167,0.1);
+    border: 1px solid rgba(0,201,167,0.2);
+    border-radius: 4px; padding: 3px 10px;
+    display: inline-block; margin-bottom: 10px;
+  }
+
+  .lesson-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800; font-size: 1.9rem;
+    color: var(--text); letter-spacing: -0.04em;
+    line-height: 1.15; margin-bottom: 10px;
+  }
+
+  .lesson-meta-row {
+    display: flex; gap: 16px; align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .lesson-meta-item {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem; color: var(--muted);
+    display: flex; align-items: center; gap: 5px;
+    letter-spacing: 0.04em;
+  }
+
+  /* ── VIDEO PLAYER ── */
+  .video-section { margin-bottom: 28px; }
+
+  .video-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  .video-wrap {
+    background: #000;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    position: relative;
+    padding-top: 56.25%; /* 16:9 */
+  }
+
+  .video-wrap iframe {
+    position: absolute; top: 0; left: 0;
+    width: 100%; height: 100%; border: none;
+  }
+
+  .video-placeholder {
+    position: absolute; top: 0; left: 0;
+    width: 100%; height: 100%;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 12px; background: var(--navy-mid);
+    cursor: pointer;
+  }
+
+  .play-btn {
+    width: 64px; height: 64px; border-radius: 50%;
+    background: var(--teal);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem; transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 0 0 0 rgba(0,201,167,0.4);
+    animation: pulse-ring 2s infinite;
+  }
+
+  @keyframes pulse-ring {
+    0%   { box-shadow: 0 0 0 0 rgba(0,201,167,0.4); }
+    70%  { box-shadow: 0 0 0 16px rgba(0,201,167,0); }
+    100% { box-shadow: 0 0 0 0 rgba(0,201,167,0); }
+  }
+
+  .play-btn:hover { transform: scale(1.08); }
+
+  .video-placeholder-text {
+    font-family: 'Syne', sans-serif;
+    font-weight: 600; font-size: 0.85rem; color: var(--muted);
+  }
+
+  /* ── LESSON CONTENT ── */
+  .content-section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px 32px;
+    margin-bottom: 20px;
+    backdrop-filter: blur(12px);
+  }
+
+  .content-section h3 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700; font-size: 1rem;
+    color: var(--text); margin-bottom: 14px;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .content-section h3 .section-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--teal); box-shadow: 0 0 6px var(--teal);
+    flex-shrink: 0;
+  }
+
+  .content-body {
+    font-size: 0.92rem; line-height: 1.75;
+    color: rgba(232,237,243,0.85);
+  }
+
+  .content-body p { margin-bottom: 12px; }
+  .content-body ul { padding-left: 20px; margin-bottom: 12px; }
+  .content-body li { margin-bottom: 6px; }
+
+  .content-body strong { color: var(--text); font-weight: 600; }
+
+  .content-body code {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+    background: rgba(0,201,167,0.1);
+    color: var(--teal);
+    padding: 2px 6px; border-radius: 4px;
+  }
+
+  /* ── PDF DOWNLOAD ── */
+  .pdf-btn {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 18px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    margin-top: 14px;
+  }
+
+  .pdf-btn:hover {
+    background: rgba(0,201,167,0.08);
+    border-color: rgba(0,201,167,0.3);
+    transform: translateY(-1px);
+  }
+
+  .pdf-icon {
+    width: 36px; height: 36px; border-radius: 8px;
+    background: rgba(240,92,110,0.15);
+    color: var(--rose);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; flex-shrink: 0;
+  }
+
+  .pdf-info .pdf-name {
+    font-family: 'Syne', sans-serif;
+    font-weight: 600; font-size: 0.82rem; color: var(--text);
+  }
+
+  .pdf-info .pdf-size {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.58rem; color: var(--muted);
+    margin-top: 2px; letter-spacing: 0.06em;
+  }
+
+  .pdf-download-icon { margin-left: auto; color: var(--teal); font-size: 0.9rem; }
+
+  /* ── QUIZ SECTION ── */
+  .quiz-section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    backdrop-filter: blur(12px);
+  }
+
+  .quiz-header {
+    padding: 18px 28px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center;
+    justify-content: space-between;
+  }
+
+  .quiz-header-left {
+    display: flex; align-items: center; gap: 10px;
+  }
+
+  .quiz-icon {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: rgba(245,166,35,0.15);
+    color: var(--amber);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.9rem;
+  }
+
+  .quiz-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700; font-size: 0.9rem; color: var(--text);
+  }
+
+  .quiz-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.58rem; color: var(--muted);
+    letter-spacing: 0.06em; margin-top: 2px;
+  }
+
+  .quiz-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem; letter-spacing: 0.08em;
+    padding: 4px 10px; border-radius: 20px;
+  }
+
+  .quiz-badge.pending { background: rgba(245,166,35,0.15); color: var(--amber); }
+  .quiz-badge.passed  { background: rgba(0,201,167,0.15);  color: var(--teal); }
+  .quiz-badge.failed  { background: rgba(240,92,110,0.15); color: var(--rose); }
+
+  /* Quiz questions */
+  .quiz-body { padding: 24px 28px; }
+
+  .quiz-q-counter {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem; color: var(--muted);
+    letter-spacing: 0.1em; margin-bottom: 20px;
+    text-transform: uppercase;
+  }
+
+  .question-block { margin-bottom: 24px; }
+
+  .question-text {
+    font-family: 'Syne', sans-serif;
+    font-weight: 600; font-size: 0.9rem;
+    color: var(--text); margin-bottom: 12px;
+    line-height: 1.4;
+  }
+
+  .options { display: flex; flex-direction: column; gap: 8px; }
+
+  .option {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px;
+    background: rgba(0,0,0,0.15);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-size: 0.85rem;
+  }
+
+  .option:hover { background: rgba(0,201,167,0.06); border-color: rgba(0,201,167,0.25); }
+
+  .option.selected { background: rgba(0,201,167,0.1); border-color: var(--teal); color: var(--teal); }
+  .option.correct  { background: rgba(0,201,167,0.15); border-color: var(--teal); color: var(--teal); }
+  .option.wrong    { background: rgba(240,92,110,0.1); border-color: var(--rose); color: var(--rose); }
+
+  .option-letter {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem; font-weight: 500;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: rgba(255,255,255,0.06);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; letter-spacing: 0;
+  }
+
+  /* Quiz result */
+  .quiz-result {
+    text-align: center; padding: 28px;
+    display: none;
+  }
+
+  .result-score {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800; font-size: 3rem;
+    letter-spacing: -0.04em; line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .result-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem; letter-spacing: 0.1em;
+    text-transform: uppercase; margin-bottom: 20px;
+  }
+
+  .result-passed { color: var(--teal); }
+  .result-failed { color: var(--rose); }
+
+  /* Action buttons */
+  .quiz-actions {
+    display: flex; gap: 10px;
+    padding: 0 28px 24px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700; font-size: 0.78rem;
+    padding: 10px 20px; border-radius: 8px;
+    border: none; cursor: pointer;
+    transition: all 0.2s;
+    display: flex; align-items: center; gap: 6px;
+    letter-spacing: 0.02em;
+  }
+
+  .btn-primary { background: var(--teal); color: var(--navy); }
+  .btn-primary:hover { background: var(--teal-dim); transform: translateY(-1px); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .btn-ghost { background: var(--glass); color: var(--muted); border: 1px solid var(--border); }
+  .btn-ghost:hover { color: var(--text); }
+  .btn-amber { background: rgba(245,166,35,0.15); color: var(--amber); border: 1px solid rgba(245,166,35,0.3); }
+  .btn-amber:hover { background: rgba(245,166,35,0.25); }
+
+  /* ── COMPLETE LESSON BTN ── */
+  .complete-section {
+    background: linear-gradient(135deg, rgba(0,201,167,0.08), rgba(77,184,255,0.06));
+    border: 1px solid rgba(0,201,167,0.2);
+    border-radius: 14px;
+    padding: 24px 28px;
+    display: flex; align-items: center;
+    justify-content: space-between;
+    margin-bottom: 40px;
+    gap: 20px;
+  }
+
+  .complete-text .ct-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700; font-size: 0.95rem; color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .complete-text .ct-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem; color: var(--muted); letter-spacing: 0.06em;
+  }
+
+  .btn-complete {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800; font-size: 0.85rem;
+    padding: 12px 24px; border-radius: 10px;
+    background: var(--teal); color: var(--navy);
+    border: none; cursor: pointer;
+    transition: all 0.2s; white-space: nowrap;
+    box-shadow: 0 4px 20px rgba(0,201,167,0.25);
+  }
+
+  .btn-complete:hover { background: var(--teal-dim); transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,201,167,0.35); }
+  .btn-complete:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  /* ── LOCKED STATE ── */
+  .locked-state {
+    display: none;
+    flex-direction: column; align-items: center;
+    justify-content: center; text-align: center;
+    padding: 80px 40px; gap: 16px;
+  }
+
+  .lock-icon { font-size: 3rem; margin-bottom: 8px; }
+
+  .lock-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700; font-size: 1.2rem; color: var(--muted);
+  }
+
+  .lock-sub {
+    font-family: 'Literata', serif;
+    font-size: 0.88rem; color: var(--muted);
+    max-width: 360px; line-height: 1.6;
+  }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--navy-light);
+    border: 1px solid var(--teal);
+    border-radius: 10px; padding: 12px 20px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 600; font-size: 0.8rem;
+    color: var(--teal); z-index: 300;
+    transform: translateY(80px); opacity: 0;
+    transition: all 0.3s ease;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--navy-light); border-radius: 4px; }
+
+  /* Animations */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .content-section, .quiz-section, .complete-section {
+    animation: fadeUp 0.4s ease both;
+  }
+
+  .content-section:nth-child(2) { animation-delay: 0.05s; }
+  .content-section:nth-child(3) { animation-delay: 0.1s; }
+  .quiz-section { animation-delay: 0.15s; }
+  .complete-section { animation-delay: 0.2s; }
+
+  /* Mobile */
+  @media (max-width: 768px) {
+    :root { --sidebar-w: 0px; }
+    .sidebar { transform: translateX(-280px); width: 280px; transition: transform 0.3s; }
+    .sidebar.open { transform: translateX(0); }
+    .main { margin-left: 0; padding: 20px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-logo">DataLearn</div>
+  <div class="topbar-course">Data Analytics · NC II</div>
+  <div class="topbar-right">
+    <div class="progress-pill">
+      <div class="progress-pill-bar">
+        <div class="progress-pill-fill" id="topProgress" style="width:0%"></div>
+      </div>
+      <div class="progress-pill-text" id="topProgressText">0/20</div>
+    </div>
+    <div class="user-chip">
+      <div class="user-avatar" id="userAvatar">?</div>
+      <div class="user-name" id="userName">Student</div>
+    </div>
+    <button class="btn-logout" onclick="logout()">Sign out</button>
+  </div>
+</div>
+
+<!-- LAYOUT -->
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-title">20-Day Program</div>
+      <div class="sidebar-sub">Data Analytics Entry Level</div>
+    </div>
+    <div class="sidebar-progress">
+      <div class="sp-row">
+        <div class="sp-label">Your Progress</div>
+        <div class="sp-pct" id="sidebarPct">0%</div>
+      </div>
+      <div class="sp-bar"><div class="sp-fill" id="sidebarFill" style="width:0%"></div></div>
+    </div>
+    <div class="day-list" id="dayList"></div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main" id="mainContent">
+    <!-- Injected dynamically -->
+  </main>
+
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"><span id="toastMsg"></span></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════════════════
+const SB_URL = localStorage.getItem('dl_sb_url') || '';
+const SB_KEY = localStorage.getItem('dl_sb_key') || '';
+const IS_DEMO = !SB_URL || !SB_KEY;
+
+// ═══════════════════════════════════════════════════════════
+// 20-DAY CURRICULUM DATA
+// ═══════════════════════════════════════════════════════════
+const CURRICULUM = [
+  // WEEK 1 — Excel / Google Sheets
+  { day:1,  week:1, title:'Introduction to Data Analytics',       duration:'60 min', topic:'Excel',    videoId:'', pdf:'Day1_Intro_DataAnalytics.pdf',
+    content: `<p><strong>Welcome to Data Analytics!</strong> In this first lesson, you will understand what data analytics is, why it matters, and how it is applied in real-world scenarios — especially in government and TESDA operations.</p>
+    <p>Data analytics is the process of examining datasets to draw conclusions about the information they contain. It involves applying an algorithmic or mechanical process to derive insights.</p>
+    <ul><li>What is Data? Types of data (structured vs unstructured)</li><li>The Data Analytics Process: Collect → Clean → Analyze → Visualize → Report</li><li>Tools used in this course: Excel, SQL, Power BI</li><li>Real-world applications in TESDA and government agencies</li></ul>
+    <p>By the end of this course, you will be able to collect, clean, analyze, and visualize data using industry-standard tools.</p>`,
+    quiz: [
+      { q:'What is the correct order of the Data Analytics Process?', options:['Visualize → Collect → Analyze → Clean → Report','Collect → Clean → Analyze → Visualize → Report','Clean → Collect → Report → Analyze → Visualize','Analyze → Collect → Clean → Visualize → Report'], answer:1 },
+      { q:'Which of the following is an example of structured data?', options:['Social media posts','Email messages','Excel spreadsheet with rows and columns','Photo albums'], answer:2 },
+      { q:'What tool will we use for data visualization in this course?', options:['Photoshop','Power BI','Google Maps','Microsoft Word'], answer:1 },
+      { q:'Data analytics helps organizations to:', options:['Make random decisions','Draw insights from data to support decisions','Only store data safely','Print reports automatically'], answer:1 },
+      { q:'Which competency category does this course belong to in TESDA?', options:['Basic Competencies','Common Competencies','Core Competencies','Elective Competencies'], answer:2 },
+    ]
+  },
+  { day:2,  week:1, title:'Navigating the Excel Interface',        duration:'60 min', topic:'Excel',    videoId:'', pdf:'Day2_Excel_Interface.pdf',
+    content: `<p>Today we explore the <strong>Microsoft Excel / Google Sheets interface</strong>. Knowing your tools is the foundation of efficient data work.</p>
+    <ul><li><strong>Ribbon & Tabs</strong> — Home, Insert, Data, Formulas, View</li><li><strong>Workbook vs Worksheet</strong> — Understanding the difference</li><li><strong>Cell References</strong> — A1, B2, absolute ($A$1) vs relative (A1)</li><li><strong>Name Box & Formula Bar</strong> — Navigating and editing</li><li><strong>Keyboard Shortcuts</strong> — Ctrl+C, Ctrl+V, Ctrl+Z, Ctrl+Home, Ctrl+End</li><li><strong>Freeze Panes</strong> — Keeping headers visible while scrolling</li></ul>
+    <p>Practice: Open Excel, create a new workbook, and navigate between 3 sheets using keyboard shortcuts only.</p>`,
+    quiz: [
+      { q:'What does pressing Ctrl+End do in Excel?', options:['Goes to cell A1','Goes to the last used cell','Deletes the current cell','Opens a new workbook'], answer:1 },
+      { q:'What is an absolute cell reference?', options:['A1','$A$1','A$1','$A1'], answer:1 },
+      { q:'The Formula Bar in Excel shows:', options:['The current date','The content of the active cell','The sheet name','The workbook name'], answer:1 },
+      { q:'Which tab contains the Freeze Panes feature?', options:['Home','Insert','View','Data'], answer:2 },
+      { q:'How many worksheets can a workbook have?', options:['Only 3','Only 10','Only 255','As many as your computer memory allows'], answer:3 },
+    ]
+  },
+  { day:3,  week:1, title:'Collecting & Organizing Datasets',      duration:'60 min', topic:'Excel',    videoId:'', pdf:'Day3_Datasets.pdf',
+    content: `<p>Good analysis starts with <strong>good data</strong>. Today we learn how to collect, organize, and evaluate datasets before analysis begins.</p>
+    <ul><li><strong>Defining Data Requirements</strong> — What do you need? Why?</li><li><strong>Data Sources</strong> — CSV files, databases, web data, government open data</li><li><strong>Data Quality Criteria</strong> — Completeness, Accuracy, Consistency, Timeliness</li><li><strong>Creating a Data Dictionary</strong> — Documenting your columns</li><li><strong>Data Privacy</strong> — RA 10173 Data Privacy Act of the Philippines</li></ul>
+    <p>Activity: Download a sample TESDA enrollment dataset and identify any data quality issues.</p>`,
+    quiz: [
+      { q:'Which law governs data privacy in the Philippines?', options:['RA 9003','RA 10173','RA 7277','RA 11232'], answer:1 },
+      { q:'What does "data completeness" mean?', options:['All data is encrypted','All required fields have values','Data is sorted correctly','Data has no duplicates'], answer:1 },
+      { q:'A Data Dictionary is used to:', options:['Store passwords','Translate words','Document what each column in a dataset means','Create graphs'], answer:2 },
+      { q:'Which of these is NOT a data quality criterion?', options:['Accuracy','Timeliness','Creativity','Completeness'], answer:2 },
+      { q:'CSV stands for:', options:['Computer Stored Values','Comma Separated Values','Column Sorted Variables','Calculated Sum Values'], answer:1 },
+    ]
+  },
+  { day:4,  week:1, title:'Table Sorting & Filtering',             duration:'60 min', topic:'Excel',    videoId:'', pdf:'Day4_Sort_Filter.pdf',
+    content: `<p>Sorting and filtering are essential skills for quickly finding and organizing the data you need.</p>
+    <ul><li><strong>Creating Tables</strong> — Convert data range to Excel Table (Ctrl+T)</li><li><strong>Sort Ascending / Descending</strong> — Single and multi-column sort</li><li><strong>AutoFilter</strong> — Filtering by value, text, number, date</li><li><strong>Advanced Filter</strong> — Using criteria ranges</li><li><strong>Filter by Color</strong> — When cells are color-coded</li><li><strong>Clearing Filters</strong> — Restoring original view</li></ul>
+    <p>Practice: Sort a student dataset by Last Name ascending, then filter to show only students from Tarlac.</p>`,
+    quiz: [
+      { q:'What keyboard shortcut creates a Table in Excel?', options:['Ctrl+T','Ctrl+L','Ctrl+B','Ctrl+F'], answer:0 },
+      { q:'To sort data by multiple columns, you use:', options:['AutoFilter','Custom Sort','Text to Columns','Pivot Table'], answer:1 },
+      { q:'Which filter type would you use to show only values between 80 and 100?', options:['Text Filter','Date Filter','Number Filter','Color Filter'], answer:2 },
+      { q:'After filtering data, the hidden rows are:', options:['Deleted permanently','Still in the sheet but hidden','Moved to another sheet','Converted to text'], answer:1 },
+      { q:'Filtering by cell color requires:', options:['Conditional formatting to be applied first','A formula','The data to be in a table','The sheet to be protected'], answer:0 },
+    ]
+  },
+  { day:5,  week:1, title:'Commonly Used Formulas',                duration:'60 min', topic:'Excel',    videoId:'', pdf:'Day5_Formulas.pdf',
+    content: `<p>Formulas are the heart of Excel. Today covers the most commonly used formulas in data analytics work.</p>
+    <ul><li><strong>SUM, AVERAGE, COUNT, MIN, MAX</strong> — Basic aggregation</li><li><strong>IF</strong> — Logical decision: =IF(condition, value_if_true, value_if_false)</li><li><strong>SUMIF / COUNTIF</strong> — Conditional aggregation</li><li><strong>VLOOKUP</strong> — =VLOOKUP(lookup_value, table_array, col_index, FALSE)</li><li><strong>TODAY() / NOW()</strong> — Date and time functions</li><li><strong>IFERROR</strong> — Handling formula errors gracefully</li></ul>
+    <p>Practice: Build a grade computation sheet using IF to classify students as PASSED or FAILED based on a score of 75.</p>`,
+    quiz: [
+      { q:'What does =COUNTIF(A1:A10,"PASSED") count?', options:['All cells in A1:A10','Cells in A1:A10 containing "PASSED"','The number 10','Blank cells only'], answer:1 },
+      { q:'In =VLOOKUP(A2,B:D,3,FALSE), what does the "3" represent?', options:['Row number','The 3rd column of the lookup range','The sheet number','The number of results'], answer:1 },
+      { q:'=IF(B2>=75,"PASSED","FAILED") will show "PASSED" when B2 is:', options:['Less than 75','Equal to 100 only','75 or more','Equal to 75 only'], answer:2 },
+      { q:'What does IFERROR do?', options:['Finds all errors in the sheet','Returns a custom value instead of showing an error','Deletes error cells','Highlights errors in red'], answer:1 },
+      { q:'=AVERAGE(10,20,30) equals:', options:['60','30','20','15'], answer:2 },
+    ]
+  },
+
+  // WEEK 2 — Advanced Excel
+  { day:6,  week:2, title:'Logical, Search & Text Functions',       duration:'60 min', topic:'Excel',    videoId:'', pdf:'Day6_Text_Functions.pdf',
+    content: `<p>Text functions help you clean, extract, and manipulate text data — a crucial skill when working with messy real-world datasets.</p>
+    <ul><li><strong>LEFT, RIGHT, MID</strong> — Extract portions of text</li><li><strong>LEN</strong> — Count characters in a cell</li><li><strong>TRIM</strong> — Remove extra spaces</li><li><strong>UPPER, LOWER, PROPER</strong> — Change text case</li><li><strong>CONCATENATE / &</strong> — Join text from multiple cells</li><li><strong>FIND / SEARCH</strong> — Locate text within a string</li><li><strong>SUBSTITUTE</strong> — Replace text within a cell</li></ul>
+    <p>Practice: Clean a list of student names that have inconsistent capitalization and extra spaces.</p>`,
+    quiz: [
+      { q:'=LEFT("DataAnalytics",4) returns:', options:['ytics','Data','Anal','tics'], answer:1 },
+      { q:'=TRIM("  Hello  ") returns:', options:['"  Hello  "','"Hello"','" Hello "','"Hello  "'], answer:1 },
+      { q:'=PROPER("juan dela cruz") returns:', options:['JUAN DELA CRUZ','juan dela cruz','Juan Dela Cruz','Juan dela cruz'], answer:2 },
+      { q:'=LEN("TESDA") returns:', options:['4','5','6','3'], answer:1 },
+      { q:'=CONCATENATE("Data"," ","Analytics") returns:', options:['DataAnalytics','Data Analytics','Data,Analytics','Data-Analytics'], answer:1 },
+    ]
+  },
+  { day:7,  week:2, title:'Creating Pivot Tables',                  duration:'90 min', topic:'Excel',    videoId:'', pdf:'Day7_Pivot_Tables.pdf',
+    content: `<p><strong>Pivot Tables</strong> are one of the most powerful tools in Excel for summarizing large datasets quickly.</p>
+    <ul><li><strong>What is a Pivot Table?</strong> — A dynamic summary table</li><li><strong>Inserting a Pivot Table</strong> — Insert → PivotTable</li><li><strong>Rows, Columns, Values, Filters</strong> — The four areas</li><li><strong>Aggregation Functions</strong> — SUM, COUNT, AVERAGE, MAX, MIN</li><li><strong>Grouping Data</strong> — By date, by category</li><li><strong>Filtering with Slicers</strong> — Interactive filters</li><li><strong>Refreshing</strong> — When source data changes</li></ul>
+    <p>Practice: Create a Pivot Table showing total enrollment per region per quarter from a TESDA dataset.</p>`,
+    quiz: [
+      { q:'Where do you insert a Pivot Table in Excel?', options:['Home tab','Insert tab','Data tab','View tab'], answer:1 },
+      { q:'Which area of a Pivot Table contains the calculated numbers?', options:['Rows','Columns','Filters','Values'], answer:3 },
+      { q:'A Slicer in a Pivot Table is used to:', options:['Cut data into pieces','Provide interactive filtering','Sort data alphabetically','Delete rows'], answer:1 },
+      { q:'To update a Pivot Table after data changes, you:', options:['Delete and recreate it','Press F5','Right-click → Refresh','Save the file'], answer:2 },
+      { q:'Which function in Pivot Tables counts the number of records?', options:['SUM','AVERAGE','COUNT','MAX'], answer:2 },
+    ]
+  },
+  { day:8,  week:2, title:'Creating Charts from Pivot Tables',      duration:'60 min', topic:'Excel',    videoId:'', pdf:'Day8_Pivot_Charts.pdf',
+    content: `<p>Charts transform numbers into visual stories. Today we create <strong>Pivot Charts</strong> directly from Pivot Tables.</p>
+    <ul><li><strong>Chart Types</strong> — Bar, Column, Line, Pie, Area, Scatter</li><li><strong>Inserting a Pivot Chart</strong> — From Pivot Table → Analyze → PivotChart</li><li><strong>Chart Elements</strong> — Title, Axis Labels, Legend, Data Labels</li><li><strong>Formatting</strong> — Colors, fonts, styles</li><li><strong>Trendlines</strong> — Showing data trends</li><li><strong>Interactive Dashboards</strong> — Connecting slicers to multiple charts</li></ul>
+    <p>Practice: Create a Column Chart showing enrollment per quarter and add a trendline.</p>`,
+    quiz: [
+      { q:'Which chart type is best for showing trends over time?', options:['Pie Chart','Bar Chart','Line Chart','Scatter Plot'], answer:2 },
+      { q:'What are "Data Labels" in a chart?', options:['The chart title','Numbers shown directly on the chart bars or points','The axis names','The legend text'], answer:1 },
+      { q:'A trendline in a chart is used to:', options:['Delete outliers','Show the general direction of data over time','Change chart colors','Filter chart data'], answer:1 },
+      { q:'Which chart type is best for showing parts of a whole (percentages)?', options:['Line Chart','Bar Chart','Pie Chart','Scatter Plot'], answer:2 },
+      { q:'To connect a Slicer to multiple Pivot Charts, you use:', options:['Copy-Paste','Report Connections','Macro','VLOOKUP'], answer:1 },
+    ]
+  },
+
+  // WEEK 3 — SQL
+  { day:9,  week:3, title:'Introduction to PostgreSQL & PgAdmin',   duration:'90 min', topic:'SQL',      videoId:'', pdf:'Day9_PostgreSQL_Intro.pdf',
+    content: `<p>Welcome to <strong>SQL week!</strong> We use <strong>PostgreSQL</strong> — a powerful, open-source relational database — with <strong>PgAdmin</strong> as our graphical interface.</p>
+    <ul><li><strong>What is a Database?</strong> — Tables, rows, columns, schemas</li><li><strong>Installing PostgreSQL</strong> — Download from postgresql.org</li><li><strong>Installing PgAdmin</strong> — The visual interface for PostgreSQL</li><li><strong>Connecting to a Server</strong> — Host, port, username, password</li><li><strong>Creating a Database</strong> — Right-click → Create → Database</li><li><strong>Data Types</strong> — TEXT, INTEGER, NUMERIC, DATE, BOOLEAN, UUID</li></ul>
+    <p>Practice: Set up PostgreSQL locally, connect via PgAdmin, and create a database called "tesda_analytics".</p>`,
+    quiz: [
+      { q:'What is PgAdmin used for?', options:['Writing Python code','Graphically managing PostgreSQL databases','Creating Excel charts','Building websites'], answer:1 },
+      { q:'Which data type stores whole numbers in PostgreSQL?', options:['TEXT','BOOLEAN','INTEGER','NUMERIC'], answer:2 },
+      { q:'What is the default port for PostgreSQL?', options:['3306','8080','5432','1433'], answer:2 },
+      { q:'A database schema is:', options:['A chart template','A collection of database objects like tables and views','A type of query','A backup file'], answer:1 },
+      { q:'Which of these is a valid PostgreSQL data type?', options:['WORD','PICTURE','UUID','FORMULA'], answer:2 },
+    ]
+  },
+  { day:10, week:3, title:'SQL Fundamentals — SELECT Queries',      duration:'90 min', topic:'SQL',      videoId:'', pdf:'Day10_SQL_SELECT.pdf',
+    content: `<p>The <strong>SELECT</strong> statement is the foundation of SQL. It retrieves data from your database tables.</p>
+    <ul><li><strong>Basic SELECT</strong> — SELECT column FROM table</li><li><strong>SELECT *</strong> — Select all columns</li><li><strong>WHERE clause</strong> — Filter rows: WHERE region = 'Region III'</li><li><strong>ORDER BY</strong> — Sort results: ORDER BY name ASC</li><li><strong>LIMIT</strong> — Limit results: LIMIT 10</li><li><strong>DISTINCT</strong> — Remove duplicates: SELECT DISTINCT region</li><li><strong>Aliases</strong> — Rename columns: SELECT name AS student_name</li></ul>
+    <p>Practice: Write a query to retrieve all students from Region III, sorted by last name, showing only the first 20 results.</p>`,
+    quiz: [
+      { q:'What does SELECT * FROM students return?', options:['Only the first row','All columns from the students table','Only the student names','Nothing'], answer:1 },
+      { q:'Which clause filters rows in a SELECT query?', options:['ORDER BY','GROUP BY','WHERE','HAVING'], answer:2 },
+      { q:'SELECT DISTINCT region FROM students will:', options:['Return all rows','Return only unique region values','Sort by region','Count regions'], answer:1 },
+      { q:'ORDER BY name DESC sorts names:', options:['Alphabetically A-Z','From Z to A','By length','Randomly'], answer:1 },
+      { q:'LIMIT 5 in a query means:', options:['Show only 5 columns','Show only the first 5 rows','Skip the first 5 rows','Return 5 tables'], answer:1 },
+    ]
+  },
+  { day:11, week:3, title:'SQL Joins — Combining Datasets',         duration:'90 min', topic:'SQL',      videoId:'', pdf:'Day11_SQL_Joins.pdf',
+    content: `<p><strong>JOINs</strong> allow you to combine data from multiple tables based on a related column.</p>
+    <ul><li><strong>INNER JOIN</strong> — Only matching rows in both tables</li><li><strong>LEFT JOIN</strong> — All rows from left table + matching from right</li><li><strong>RIGHT JOIN</strong> — All rows from right table + matching from left</li><li><strong>FULL OUTER JOIN</strong> — All rows from both tables</li><li><strong>CROSS JOIN</strong> — Cartesian product of both tables</li><li><strong>Table Aliases</strong> — FROM students s JOIN batches b ON s.batch_id = b.id</li></ul>
+    <p>Practice: Join a students table with a batches table to show each student's batch name and start date.</p>`,
+    quiz: [
+      { q:'INNER JOIN returns:', options:['All rows from both tables','Only rows with matching values in both tables','All rows from the left table','All rows from the right table'], answer:1 },
+      { q:'LEFT JOIN ensures:', options:['Only matching rows appear','All rows from the left table appear','All rows from the right table appear','No NULL values appear'], answer:1 },
+      { q:'What does ON s.batch_id = b.id specify in a JOIN?', options:['The table to delete','The condition for matching rows','The column to sort by','The number of results'], answer:1 },
+      { q:'FULL OUTER JOIN returns:', options:['Only matching rows','All rows from both tables, with NULLs for non-matches','Only left table rows','Only right table rows'], answer:1 },
+      { q:'Which JOIN produces the most rows?', options:['INNER JOIN','LEFT JOIN','CROSS JOIN','RIGHT JOIN'], answer:2 },
+    ]
+  },
+  { day:12, week:3, title:'SQL Functions — Math, String, Timestamps', duration:'90 min', topic:'SQL', videoId:'', pdf:'Day12_SQL_Functions.pdf',
+    content: `<p>SQL has built-in functions for math calculations, text manipulation, and date/time handling.</p>
+    <ul><li><strong>Math:</strong> SUM(), AVG(), COUNT(), MIN(), MAX(), ROUND(), ABS()</li><li><strong>String:</strong> CONCAT(), UPPER(), LOWER(), LENGTH(), SUBSTRING(), TRIM()</li><li><strong>Date/Time:</strong> NOW(), CURRENT_DATE, EXTRACT(), DATE_PART(), AGE()</li><li><strong>Conditional:</strong> CASE WHEN ... THEN ... ELSE ... END</li><li><strong>NULL handling:</strong> COALESCE(), NULLIF()</li></ul>
+    <p>Practice: Write a query that computes the average grade per batch and classifies each batch as EXCELLENT (≥90), GOOD (≥75), or NEEDS IMPROVEMENT using CASE WHEN.</p>`,
+    quiz: [
+      { q:'EXTRACT(YEAR FROM created_at) extracts:', options:['The month','The year','The day','The hour'], answer:1 },
+      { q:'COALESCE(NULL, NULL, "Hello") returns:', options:['NULL','Hello','Error','0'], answer:1 },
+      { q:'LENGTH("DataLearn") returns:', options:['8','9','10','7'], answer:1 },
+      { q:'CASE WHEN score >= 75 THEN "PASSED" ELSE "FAILED" END is equivalent to Excel\'s:', options:['VLOOKUP','SUMIF','IF function','COUNTIF'], answer:2 },
+      { q:'ROUND(3.14159, 2) returns:', options:['3','3.1','3.14','3.142'], answer:2 },
+    ]
+  },
+
+  // WEEK 4 — Power BI
+  { day:13, week:4, title:'Introduction to Power BI',               duration:'60 min', topic:'Power BI', videoId:'', pdf:'Day13_PowerBI_Intro.pdf',
+    content: `<p><strong>Power BI</strong> is Microsoft's business intelligence tool for creating interactive dashboards and reports.</p>
+    <ul><li><strong>Power BI Desktop</strong> — Free download from Microsoft</li><li><strong>Power BI Service</strong> — Cloud-based sharing (powerbi.com)</li><li><strong>The 3 Views:</strong> Report View, Data View, Model View</li><li><strong>The Ribbon</strong> — Home, Insert, Modeling, View, Help tabs</li><li><strong>Visualizations Pane</strong> — All available chart types</li><li><strong>Fields Pane</strong> — Your data tables and columns</li></ul>
+    <p>Practice: Install Power BI Desktop and explore the interface by loading a sample dataset.</p>`,
+    quiz: [
+      { q:'Power BI Desktop is:', options:['A paid cloud service only','A free desktop application from Microsoft','A browser extension','A mobile app only'], answer:1 },
+      { q:'Which view in Power BI shows relationships between tables?', options:['Report View','Data View','Model View','Field View'], answer:2 },
+      { q:'The Visualizations Pane in Power BI contains:', options:['Your data tables','All available chart types','DAX formulas','Query settings'], answer:1 },
+      { q:'Power BI Service is used for:', options:['Creating reports offline','Sharing and publishing reports online','Installing Power BI','Writing SQL queries'], answer:1 },
+      { q:'Which pane shows your tables and columns in Power BI?', options:['Filters Pane','Visualizations Pane','Fields Pane','Format Pane'], answer:2 },
+    ]
+  },
+  { day:14, week:4, title:'Importing Data & Power Query Editor',    duration:'90 min', topic:'Power BI', videoId:'', pdf:'Day14_PowerQuery.pdf',
+    content: `<p>The <strong>Power Query Editor</strong> is where you import, clean, and transform data before building reports.</p>
+    <ul><li><strong>Get Data</strong> — Excel, CSV, SQL Server, Web, and more</li><li><strong>Power Query Editor Interface</strong> — Queries panel, steps panel, preview</li><li><strong>Applied Steps</strong> — Every transformation is recorded</li><li><strong>Remove Duplicates</strong> — Keep unique rows</li><li><strong>Handle Missing Values</strong> — Replace or remove nulls</li><li><strong>Change Data Types</strong> — Text, Number, Date, Boolean</li><li><strong>Rename Columns</strong> — For cleaner field names</li></ul>
+    <p>Practice: Import a CSV file into Power BI, use Power Query to remove blank rows and fix data types.</p>`,
+    quiz: [
+      { q:'Applied Steps in Power Query are:', options:['SQL queries','A record of every transformation made','Chart configurations','DAX formulas'], answer:1 },
+      { q:'To import data from Excel in Power BI, you go to:', options:['Insert → Table','Home → Get Data → Excel','File → Open','Data → Import'], answer:1 },
+      { q:'Which Power Query operation removes duplicate rows?', options:['Remove Errors','Remove Columns','Remove Duplicates','Remove Rows'], answer:2 },
+      { q:'Changing a column from Text to Number in Power Query is called:', options:['Formatting','Data Type Change','Column Split','Merge Columns'], answer:1 },
+      { q:'When you close Power Query Editor, your changes are:', options:['Lost unless saved separately','Applied to the data in Power BI','Saved as a separate file','Sent to Supabase automatically'], answer:1 },
+    ]
+  },
+  { day:15, week:4, title:'M Language in Power Query',              duration:'60 min', topic:'Power BI', videoId:'', pdf:'Day15_M_Language.pdf',
+    content: `<p><strong>M Language</strong> (also called Power Query Formula Language) is the language behind every step in Power Query.</p>
+    <ul><li><strong>Why M?</strong> — More control, custom transformations, reusable functions</li><li><strong>Accessing M Code</strong> — Advanced Editor in Power Query</li><li><strong>Basic M Structure</strong> — let ... in</li><li><strong>Common Functions</strong> — Table.SelectRows, Text.Upper, Date.Year, List.Sum</li><li><strong>Creating Custom Columns</strong> — Using M expressions</li><li><strong>Parameters</strong> — Making queries flexible</li></ul>
+    <p>Practice: Write an M expression to create a custom column that labels enrollment as "Q1", "Q2", "Q3", or "Q4" based on the month.</p>`,
+    quiz: [
+      { q:'M Language in Power BI is used in:', options:['DAX formulas','Power Query transformations','Chart formatting','Report publishing'], answer:1 },
+      { q:'The Advanced Editor in Power Query shows:', options:['DAX code','SQL queries','The M code behind your steps','Python scripts'], answer:2 },
+      { q:'A basic M query structure starts with:', options:['SELECT','BEGIN','let','def'], answer:2 },
+      { q:'Table.SelectRows in M is equivalent to:', options:['JOIN in SQL','WHERE in SQL','GROUP BY in SQL','ORDER BY in SQL'], answer:1 },
+      { q:'M Language is case-sensitive:', options:['False — it ignores case','True — Table ≠ table','Only for function names','Only for column names'], answer:1 },
+    ]
+  },
+  { day:16, week:4, title:'DAX Functions & Measures',               duration:'90 min', topic:'Power BI', videoId:'', pdf:'Day16_DAX.pdf',
+    content: `<p><strong>DAX (Data Analysis Expressions)</strong> is the formula language of Power BI, used to create calculated columns and measures.</p>
+    <ul><li><strong>Measures vs Calculated Columns</strong> — When to use each</li><li><strong>Basic DAX:</strong> SUM(), AVERAGE(), COUNT(), DISTINCTCOUNT()</li><li><strong>Logical:</strong> IF(), AND(), OR(), SWITCH()</li><li><strong>Text:</strong> CONCATENATE(), LEFT(), RIGHT(), FORMAT()</li><li><strong>Date:</strong> YEAR(), MONTH(), TODAY(), DATEDIFF()</li><li><strong>Time Intelligence:</strong> TOTALYTD(), SAMEPERIODLASTYEAR()</li><li><strong>Filter:</strong> CALCULATE(), ALL(), FILTER()</li></ul>
+    <p>Practice: Create a measure for "Pass Rate %" = DIVIDE(COUNTIF passed students, total students) × 100</p>`,
+    quiz: [
+      { q:'In Power BI, a Measure is calculated:', options:['When the file is saved','Dynamically based on filter context','Only once when created','When you refresh data'], answer:1 },
+      { q:'CALCULATE() in DAX is used to:', options:['Create charts','Evaluate an expression in a modified filter context','Import data','Connect to SQL'], answer:1 },
+      { q:'DISTINCTCOUNT() counts:', options:['All rows including duplicates','Only unique values','NULL values','Blank cells'], answer:1 },
+      { q:'TOTALYTD() is a type of:', options:['Text function','Math function','Time Intelligence function','Filter function'], answer:2 },
+      { q:'DIVIDE(10, 0) in DAX returns:', options:['Error','Infinity','BLANK()','0'], answer:2 },
+    ]
+  },
+  { day:17, week:4, title:'Data Modeling Using Schema',             duration:'90 min', topic:'Power BI', videoId:'', pdf:'Day17_Data_Modeling.pdf',
+    content: `<p><strong>Data Modeling</strong> connects your tables together so Power BI knows how to relate them during analysis.</p>
+    <ul><li><strong>Star Schema</strong> — One Fact table surrounded by Dimension tables</li><li><strong>Snowflake Schema</strong> — Normalized dimensions</li><li><strong>Relationships</strong> — One-to-Many, Many-to-Many, One-to-One</li><li><strong>Primary & Foreign Keys</strong> — The linking columns</li><li><strong>Cross-filter Direction</strong> — Single vs Both</li><li><strong>Active vs Inactive Relationships</strong> — Managing multiple paths</li></ul>
+    <p>Practice: Build a Star Schema in Power BI with a fact table (enrollments) and dimension tables (students, batches, courses, regions).</p>`,
+    quiz: [
+      { q:'In a Star Schema, the central table is called:', options:['Dimension Table','Fact Table','Bridge Table','Lookup Table'], answer:1 },
+      { q:'A One-to-Many relationship means:', options:['One row in table A matches many rows in table B','Every row matches every other row','Tables are identical','No relationship exists'], answer:0 },
+      { q:'A Primary Key is:', options:['Any column in a table','A unique identifier for each row','A foreign column from another table','A calculated column'], answer:1 },
+      { q:'Cross-filter Direction "Both" in Power BI means:', options:['Filtering works in both directions between tables','Data flows both ways between files','Reports are published both desktop and web','Both users can edit'], answer:0 },
+      { q:'Snowflake Schema differs from Star Schema because:', options:['It has no fact table','Dimension tables are further normalized','It only works with SQL','It has no relationships'], answer:1 },
+    ]
+  },
+  { day:18, week:4, title:'Building Reports & Dashboards in Power BI', duration:'90 min', topic:'Power BI', videoId:'', pdf:'Day18_PowerBI_Reports.pdf',
+    content: `<p>Today we put everything together and build a <strong>complete interactive dashboard</strong> in Power BI.</p>
+    <ul><li><strong>Report Canvas</strong> — Adding and arranging visuals</li><li><strong>Common Visuals</strong> — Bar chart, Line chart, Card, Table, Matrix, Map</li><li><strong>Slicers</strong> — Interactive filters for your report</li><li><strong>Drill-through</strong> — Navigate from summary to detail</li><li><strong>Bookmarks</strong> — Save report states for navigation</li><li><strong>Mobile Layout</strong> — Optimizing for phone viewing</li><li><strong>Themes</strong> — Consistent color schemes</li></ul>
+    <p>Practice: Build a TESDA enrollment dashboard with: total trainees card, enrollment by region bar chart, monthly trend line, and a slicer by batch.</p>`,
+    quiz: [
+      { q:'A Card visual in Power BI displays:', options:['A table of data','A single key metric/number','A map','A bar chart'], answer:1 },
+      { q:'A Slicer in Power BI is used to:', options:['Cut data from the dataset','Provide interactive filtering across visuals','Create calculated columns','Import new data'], answer:1 },
+      { q:'Drill-through in Power BI allows you to:', options:['Delete a page','Navigate from a summary view to a detailed page','Export to Excel','Share the report'], answer:1 },
+      { q:'A Matrix visual in Power BI is similar to:', options:['A Line chart','An Excel Pivot Table','A Map','A Card'], answer:1 },
+      { q:'Bookmarks in Power BI are used to:', options:['Mark favorite rows','Save and navigate between report states','Bookmark external websites','Save the file'], answer:1 },
+    ]
+  },
+
+  // WEEK 5 — Final Days
+  { day:19, week:5, title:'Data Cleaning Best Practices',           duration:'90 min', topic:'Capstone', videoId:'', pdf:'Day19_Data_Cleaning.pdf',
+    content: `<p>Real-world data is messy. <strong>Data cleaning</strong> — also called data wrangling — is often 80% of the analytics work.</p>
+    <ul><li><strong>Types of Dirty Data</strong> — Missing values, duplicates, inconsistencies, outliers, wrong formats</li><li><strong>Missing Value Strategies</strong> — Delete, impute (mean/median/mode), flag</li><li><strong>Duplicate Detection</strong> — Excel: Remove Duplicates | SQL: GROUP BY | Power Query: Remove Duplicates</li><li><strong>Standardization</strong> — Consistent formats for dates, names, regions</li><li><strong>Outlier Detection</strong> — Z-score, IQR method</li><li><strong>Data Validation</strong> — Excel data validation rules</li></ul>
+    <p>Practice: Clean a provided "dirty" TESDA dataset with 5 types of data issues — document each issue and your solution.</p>`,
+    quiz: [
+      { q:'Which is NOT a type of dirty data?', options:['Missing values','Duplicates','Sorted data','Outliers'], answer:2 },
+      { q:'Imputation in data cleaning means:', options:['Deleting incomplete rows','Replacing missing values with estimated values','Sorting the data','Removing outliers'], answer:1 },
+      { q:'An outlier in data is:', options:['A missing value','A duplicate row','A value that is significantly different from others','A wrong data type'], answer:2 },
+      { q:'Data Validation in Excel is used to:', options:['Sort data','Restrict what values can be entered in a cell','Create charts','Format cells'], answer:1 },
+      { q:'The IQR method for outlier detection uses:', options:['Mean and standard deviation','Interquartile range','Mode only','Z-scores only'], answer:1 },
+    ]
+  },
+  { day:20, week:5, title:'Capstone Project & Course Completion',   duration:'180 min', topic:'Capstone', videoId:'', pdf:'Day20_Capstone_Guide.pdf',
+    content: `<p>🎓 <strong>Congratulations on reaching Day 20!</strong> Today is your Capstone Project day — the culmination of everything you've learned.</p>
+    <p><strong>Capstone Project Requirements:</strong></p>
+    <ul><li>Choose a real dataset (TESDA enrollment, LGU data, or provided dataset)</li><li><strong>Excel:</strong> Clean the data, create Pivot Tables and Charts</li><li><strong>SQL:</strong> Write at least 5 queries (SELECT, JOIN, aggregate functions, CASE WHEN)</li><li><strong>Power BI:</strong> Build a complete interactive dashboard with at least 5 visuals</li><li><strong>Report:</strong> Write a 1-page narrative of your findings</li></ul>
+    <p><strong>Submission:</strong> Upload your Excel file, SQL script, Power BI file (.pbix), and narrative report.</p>
+    <p>Upon successful completion and passing this final quiz, your <strong>TESDA DataLearn Certificate</strong> will be generated automatically! 🏆</p>`,
+    quiz: [
+      { q:'Which of the following tools did we use in this course?', options:['Photoshop, Word, PowerPoint','Excel, SQL, Power BI','Python, R, Tableau','Access, Outlook, Teams'], answer:1 },
+      { q:'The Capstone Project requires building a dashboard in:', options:['Excel only','Google Sheets','Power BI','Microsoft Access'], answer:2 },
+      { q:'In data analytics, "ETL" stands for:', options:['Extract, Transform, Load','Edit, Transfer, Launch','Export, Track, List','Evaluate, Test, Log'], answer:0 },
+      { q:'Which of these is a KPI (Key Performance Indicator)?', options:['A chart color','Enrollment completion rate','A database table name','A keyboard shortcut'], answer:1 },
+      { q:'Completing this course means you can:', options:['Only use Excel','Collect, clean, analyze, and visualize data using Excel, SQL, and Power BI','Only read data','Only create charts'], answer:1 },
+    ]
+  },
+];
+
+// ═══════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════
+let currentDay = 1;
+let completedDays = JSON.parse(localStorage.getItem('dl_completed') || '[]');
+let quizAnswers  = {};
+let quizSubmitted = false;
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+function init() {
+  // Load user info
+  const session = localStorage.getItem('dl_session');
+  if (!session) { window.location.href = 'datalearn_login.html'; return; }
+
+  try {
+    const parsed = JSON.parse(session);
+    const user   = parsed.user || parsed;
+    const name   = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Student';
+    const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2);
+    document.getElementById('userName').textContent = name;
+    document.getElementById('userAvatar').textContent = initials;
+  } catch(e) {}
+
+  renderDayList();
+  loadDay(currentDay);
+  updateProgress();
+}
+
+// ═══════════════════════════════════════════════════════════
+// SIDEBAR
+// ═══════════════════════════════════════════════════════════
+function renderDayList() {
+  const container = document.getElementById('dayList');
+  let html = '';
+  let lastWeek = 0;
+
+  CURRICULUM.forEach(lesson => {
+    if (lesson.week !== lastWeek) {
+      const weekNames = ['','Week 1 — Excel Basics','Week 2 — Advanced Excel','Week 3 — SQL','Week 4 — Power BI','Week 5 — Capstone'];
+      html += `<div class="week-label">${weekNames[lesson.week]}</div>`;
+      lastWeek = lesson.week;
+    }
+
+    const isDone      = completedDays.includes(lesson.day);
+    const isActive    = lesson.day === currentDay;
+    const isLocked    = lesson.day > 1 && !completedDays.includes(lesson.day - 1) && !isActive;
+    const isAvailable = !isLocked;
+
+    let iconClass = 'locked-icon', iconContent = '🔒';
+    if (isDone)        { iconClass = 'done';         iconContent = '✓'; }
+    else if (isActive) { iconClass = 'active-icon';  iconContent = lesson.day; }
+    else if (isAvailable) { iconClass = 'available-icon'; iconContent = lesson.day; }
+
+    const itemClass = isLocked ? 'locked' : (isActive ? 'active' : '');
+
+    html += `
+      <div class="day-item ${itemClass}" onclick="${isLocked ? '' : `loadDay(${lesson.day})`}">
+        <div class="day-icon ${iconClass}">${iconContent}</div>
+        <div class="day-info">
+          <div class="day-title">Day ${lesson.day}: ${lesson.title}</div>
+          <div class="day-meta">${lesson.duration} · ${lesson.topic}</div>
+        </div>
+        ${isDone ? '<span class="day-check">✓</span>' : ''}
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════════
+// LOAD DAY
+// ═══════════════════════════════════════════════════════════
+function loadDay(day) {
+  const lesson = CURRICULUM.find(l => l.day === day);
+  if (!lesson) return;
+
+  // Check if locked
+  if (day > 1 && !completedDays.includes(day - 1)) {
+    showLockedState(day);
+    return;
+  }
+
+  currentDay    = day;
+  quizAnswers   = {};
+  quizSubmitted = false;
+
+  const isDone = completedDays.includes(day);
+
+  // Video
+  const videoHTML = `
+    <div class="video-section">
+      <div class="video-label">📹 Lesson Video</div>
+      <div class="video-wrap">
+        <div class="video-placeholder" onclick="playVideo(${day})" id="videoPlaceholder${day}">
+          <div class="play-btn">▶</div>
+          <div class="video-placeholder-text">Day ${day}: ${lesson.title}</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Content
+  const contentHTML = `
+    <div class="content-section">
+      <h3><span class="section-dot"></span> Lesson Content</h3>
+      <div class="content-body">${lesson.content}</div>
+      <a class="pdf-btn" href="${lesson.pdf}" download>
+        <div class="pdf-icon">📄</div>
+        <div class="pdf-info">
+          <div class="pdf-name">${lesson.pdf}</div>
+          <div class="pdf-size">PDF · Lesson Handout — Day ${day}</div>
+        </div>
+        <span class="pdf-download-icon">⬇</span>
+      </a>
+    </div>
+  `;
+
+  // Quiz
+  const quizHTML = buildQuiz(lesson, isDone);
+
+  // Complete button
+  const completeHTML = isDone ? `
+    <div class="complete-section" style="background:linear-gradient(135deg,rgba(0,201,167,0.12),rgba(77,184,255,0.08));">
+      <div class="complete-text">
+        <div class="ct-title">✓ Day ${day} Completed!</div>
+        <div class="ct-sub">GREAT WORK · MOVE ON TO THE NEXT LESSON</div>
+      </div>
+      ${day < 20 ? `<button class="btn-complete" onclick="loadDay(${day+1})">Next Lesson →</button>` : '<span style="font-family:\'Syne\',sans-serif;font-weight:700;color:var(--teal);">🎓 Course Complete!</span>'}
+    </div>
+  ` : `
+    <div class="complete-section" id="completeSection${day}" style="display:none;">
+      <div class="complete-text">
+        <div class="ct-title">✓ Day ${day} Completed!</div>
+        <div class="ct-sub">GREAT WORK · NEXT LESSON UNLOCKED</div>
+      </div>
+      ${day < 20 ? `<button class="btn-complete" onclick="loadDay(${day+1})">Next Lesson →</button>` : '<span style="font-family:\'Syne\',sans-serif;font-weight:700;color:var(--teal);">🎓 Course Complete!</span>'}
+    </div>
+  `;
+
+  document.getElementById('mainContent').innerHTML = `
+    <div class="lesson-header">
+      <div class="lesson-day-badge">DAY ${day} OF 20 · ${lesson.topic.toUpperCase()}</div>
+      <div class="lesson-title">${lesson.title}</div>
+      <div class="lesson-meta-row">
+        <div class="lesson-meta-item">⏱ ${lesson.duration}</div>
+        <div class="lesson-meta-item">📋 ${lesson.quiz.length} quiz questions</div>
+        <div class="lesson-meta-item">📄 Downloadable PDF</div>
+        ${isDone ? '<div class="lesson-meta-item" style="color:var(--teal);">✓ Completed</div>' : ''}
+      </div>
+    </div>
+    ${videoHTML}
+    ${contentHTML}
+    ${quizHTML}
+    ${completeHTML}
+  `;
+
+  // Update sidebar
+  document.querySelectorAll('.day-item').forEach((el, i) => {
+    el.classList.toggle('active', i + 1 === day);
+  });
+
+  renderDayList();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ═══════════════════════════════════════════════════════════
+// QUIZ
+// ═══════════════════════════════════════════════════════════
+function buildQuiz(lesson, alreadyDone) {
+  const questionsHTML = lesson.quiz.map((q, qi) => `
+    <div class="question-block" id="qblock_${qi}">
+      <div class="question-text">${qi + 1}. ${q.q}</div>
+      <div class="options">
+        ${q.options.map((opt, oi) => `
+          <div class="option" id="opt_${qi}_${oi}" onclick="${alreadyDone ? '' : `selectOption(${qi},${oi})`}">
+            <div class="option-letter">${['A','B','C','D'][oi]}</div>
+            ${opt}
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+
+  return `
+    <div class="quiz-section">
+      <div class="quiz-header">
+        <div class="quiz-header-left">
+          <div class="quiz-icon">📝</div>
+          <div>
+            <div class="quiz-title">Lesson Quiz — Day ${lesson.day}</div>
+            <div class="quiz-sub">${lesson.quiz.length} QUESTIONS · PASSING SCORE: 80%</div>
+          </div>
+        </div>
+        <span class="quiz-badge ${alreadyDone ? 'passed' : 'pending'}" id="quizBadge">
+          ${alreadyDone ? '✓ PASSED' : 'PENDING'}
+        </span>
+      </div>
+      <div class="quiz-body" id="quizBody">
+        <div class="quiz-q-counter">${lesson.quiz.length} questions — select one answer per question</div>
+        ${alreadyDone ? '<div style="padding:12px 0;font-family:\'DM Mono\',monospace;font-size:0.72rem;color:var(--teal);">✓ You have already passed this quiz.</div>' : questionsHTML}
+      </div>
+      <div class="quiz-result" id="quizResult"></div>
+      ${alreadyDone ? '' : `
+        <div class="quiz-actions" id="quizActions">
+          <button class="btn btn-primary" id="submitQuizBtn" onclick="submitQuiz(${lesson.day})" disabled>Submit Quiz</button>
+          <button class="btn btn-ghost" onclick="resetQuiz(${lesson.day})">Reset</button>
+        </div>
+      `}
+    </div>
+  `;
+}
+
+function selectOption(qi, oi) {
+  if (quizSubmitted) return;
+  quizAnswers[qi] = oi;
+
+  // Update UI — clear row, mark selected
+  const lesson = CURRICULUM.find(l => l.day === currentDay);
+  lesson.quiz[qi].options.forEach((_, i) => {
+    const el = document.getElementById(`opt_${qi}_${i}`);
+    if (el) el.className = i === oi ? 'option selected' : 'option';
+  });
+
+  // Enable submit if all answered
+  const allAnswered = lesson.quiz.every((_, i) => quizAnswers[i] !== undefined);
+  const btn = document.getElementById('submitQuizBtn');
+  if (btn) btn.disabled = !allAnswered;
+}
+
+function submitQuiz(day) {
+  const lesson = CURRICULUM.find(l => l.day === day);
+  if (!lesson) return;
+
+  quizSubmitted = true;
+  let correct = 0;
+
+  lesson.quiz.forEach((q, qi) => {
+    const selected = quizAnswers[qi];
+    q.options.forEach((_, oi) => {
+      const el = document.getElementById(`opt_${qi}_${oi}`);
+      if (!el) return;
+      if (oi === q.answer)  el.className = 'option correct';
+      else if (oi === selected && selected !== q.answer) el.className = 'option wrong';
+    });
+    if (selected === q.answer) correct++;
+  });
+
+  const total   = lesson.quiz.length;
+  const score   = Math.round((correct / total) * 100);
+  const passed  = score >= 80;
+
+  const resultEl = document.getElementById('quizResult');
+  resultEl.style.display = 'block';
+  resultEl.innerHTML = `
+    <div class="result-score ${passed ? 'result-passed' : 'result-failed'}">${score}%</div>
+    <div class="result-label ${passed ? 'result-passed' : 'result-failed'}">${passed ? '🎉 PASSED!' : '✗ Not Passed'}</div>
+    <div style="font-family:'DM Mono',monospace;font-size:0.68rem;color:var(--muted);margin-bottom:16px;">${correct} out of ${total} correct · ${passed ? 'Minimum 80% required — well done!' : 'Minimum 80% required — review and try again.'}</div>
+    ${passed ? '' : '<div style="font-size:0.82rem;color:var(--muted);">Review the lesson content above and try again.</div>'}
+  `;
+
+  // Update badge
+  const badge = document.getElementById('quizBadge');
+  if (badge) {
+    badge.className = `quiz-badge ${passed ? 'passed' : 'failed'}`;
+    badge.textContent = passed ? '✓ PASSED' : '✗ FAILED';
+  }
+
+  // Hide submit, show retry if failed
+  const actions = document.getElementById('quizActions');
+  if (actions) {
+    actions.innerHTML = passed
+      ? `<button class="btn btn-primary" onclick="markComplete(${day})">✓ Mark Lesson Complete</button>`
+      : `<button class="btn btn-amber" onclick="resetQuiz(${day})">↺ Try Again</button>`;
+  }
+
+  if (passed) saveScore(day, score);
+}
+
+function resetQuiz(day) {
+  quizAnswers   = {};
+  quizSubmitted = false;
+  loadDay(day);
+  setTimeout(() => {
+    document.querySelector('.quiz-section')?.scrollIntoView({ behavior: 'smooth' });
+  }, 300);
+}
+
+// ═══════════════════════════════════════════════════════════
+// COMPLETE LESSON
+// ═══════════════════════════════════════════════════════════
+function markComplete(day) {
+  if (!completedDays.includes(day)) {
+    completedDays.push(day);
+    localStorage.setItem('dl_completed', JSON.stringify(completedDays));
+    saveProgressToSupabase(day);
+  }
+
+  // Show complete section
+  const sec = document.getElementById(`completeSection${day}`);
+  if (sec) sec.style.display = 'flex';
+
+  updateProgress();
+  renderDayList();
+  showToast(`🎉 Day ${day} complete! ${day < 20 ? 'Day ' + (day+1) + ' unlocked!' : 'Course complete! 🏆'}`);
+
+  sec?.scrollIntoView({ behavior: 'smooth' });
+}
+
+// ═══════════════════════════════════════════════════════════
+// SUPABASE SYNC
+// ═══════════════════════════════════════════════════════════
+async function saveProgressToSupabase(day) {
+  if (IS_DEMO || !SB_URL || !SB_KEY) return;
+  try {
+    const token = localStorage.getItem('dl_access_token');
+    const session = JSON.parse(localStorage.getItem('dl_session') || '{}');
+    const userId = session.user?.id || session.id;
+    if (!userId) return;
+
+    await fetch(`${SB_URL}/rest/v1/student_progress`, {
+      method: 'POST',
+      headers: {
+        'apikey': SB_KEY,
+        'Authorization': `Bearer ${token || SB_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'resolution=merge-duplicates'
+      },
+      body: JSON.stringify({
+        student_id: userId,
+        lesson_id: null, // set if you have lesson UUIDs
+        course_id: null,
+        is_completed: true,
+        completion_date: new Date().toISOString(),
+        time_spent_minutes: 60
+      })
+    });
+  } catch(e) { console.warn('Supabase sync failed:', e.message); }
+}
+
+async function saveScore(day, score) {
+  if (IS_DEMO || !SB_URL || !SB_KEY) return;
+  try {
+    const token = localStorage.getItem('dl_access_token');
+    const session = JSON.parse(localStorage.getItem('dl_session') || '{}');
+    const userId = session.user?.id || session.id;
+    if (!userId) return;
+
+    await fetch(`${SB_URL}/rest/v1/quiz_attempts`, {
+      method: 'POST',
+      headers: {
+        'apikey': SB_KEY,
+        'Authorization': `Bearer ${token || SB_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+      },
+      body: JSON.stringify({
+        student_id: userId,
+        quiz_id: null,
+        score: score,
+        score_percent: score,
+        passed: score >= 80,
+        attempt_number: 1,
+        answers: quizAnswers
+      })
+    });
+  } catch(e) { console.warn('Score sync failed:', e.message); }
+}
+
+// ═══════════════════════════════════════════════════════════
+// PROGRESS
+// ═══════════════════════════════════════════════════════════
+function updateProgress() {
+  const pct = Math.round((completedDays.length / 20) * 100);
+  document.getElementById('topProgress').style.width = pct + '%';
+  document.getElementById('topProgressText').textContent = `${completedDays.length}/20`;
+  document.getElementById('sidebarPct').textContent = pct + '%';
+  document.getElementById('sidebarFill').style.width = pct + '%';
+}
+
+// ═══════════════════════════════════════════════════════════
+// VIDEO (placeholder — teacher adds YouTube embed IDs)
+// ═══════════════════════════════════════════════════════════
+function playVideo(day) {
+  const lesson = CURRICULUM.find(l => l.day === day);
+  if (lesson?.videoId) {
+    const wrap = document.querySelector('.video-wrap');
+    wrap.innerHTML = `<iframe src="https://www.youtube.com/embed/${lesson.videoId}?autoplay=1" allowfullscreen allow="autoplay"></iframe>`;
+  } else {
+    showToast('📹 Video coming soon! Your trainer will add the video link.');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// LOCKED STATE
+// ═══════════════════════════════════════════════════════════
+function showLockedState(day) {
+  document.getElementById('mainContent').innerHTML = `
+    <div class="locked-state" style="display:flex;">
+      <div class="lock-icon">🔒</div>
+      <div class="lock-title">Day ${day} is Locked</div>
+      <div class="lock-sub">Complete Day ${day - 1} first to unlock this lesson. Keep going — you're doing great!</div>
+      <button class="btn btn-primary" onclick="loadDay(${day-1})" style="margin-top:8px;">← Go to Day ${day-1}</button>
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════════
+// LOGOUT
+// ═══════════════════════════════════════════════════════════
+function logout() {
+  localStorage.removeItem('dl_session');
+  localStorage.removeItem('dl_access_token');
+  window.location.href = 'datalearn_login.html';
+}
+
+// ═══════════════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════════════
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// ── BOOT ──────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
